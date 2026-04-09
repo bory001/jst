@@ -2,455 +2,407 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BT Key Picker</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#0d0d14; --sur:#13131e; --sur2:#1a1a28;
-  --bdr:#2a2a3e; --txt:#f0f0f8; --muted:#6060a0;
+  --bdr:#2a2a3e; --txt:#f0f0f8; --muted:#5050a0;
   --accent:#5b8dee; --green:#2ecc71; --orange:#f5a400;
   --red:#e74c3c; --gold:#f4c430;
 }
 *{ margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
 body {
   font-family:'Noto Sans KR',sans-serif;
   background:var(--bg); color:var(--txt);
-  min-height:100dvh; display:flex; flex-direction:column;
-  align-items:center; padding:20px 16px; gap:16px;
-  user-select:none;
+  min-height:100dvh;
+  display:flex; flex-direction:column;
+  align-items:center; padding:16px;
+  gap:14px; overflow-y:auto;
 }
 
-h1 {
-  font-size:1.4rem; font-weight:900; color:var(--gold);
-  letter-spacing:2px; text-align:center; margin-top:8px;
+h1 { font-size:1.3rem; font-weight:900; color:var(--gold); letter-spacing:2px; text-align:center; }
+.sub { font-size:0.75rem; color:var(--muted); text-align:center; margin-top:-6px; }
+
+/* ── 토글 버튼 ── */
+.toggle-wrap { width:100%; max-width:600px; }
+.toggle-btn {
+  width:100%; padding:14px;
+  font-family:'Noto Sans KR',sans-serif; font-size:1.1rem; font-weight:900;
+  border-radius:14px; border:2px solid var(--bdr);
+  cursor:pointer; transition:all .2s; letter-spacing:1px;
 }
-.subtitle { font-size:0.8rem; color:var(--muted); text-align:center; margin-top:-8px; }
+.toggle-btn.off {
+  background:var(--sur2); color:var(--muted);
+  border-color:var(--bdr);
+}
+.toggle-btn.on {
+  background:rgba(46,204,113,.15); color:var(--green);
+  border-color:var(--green);
+  animation:breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,100%{ box-shadow:0 0 0 0 rgba(46,204,113,.3); }
+  50%    { box-shadow:0 0 0 8px rgba(46,204,113,.0); }
+}
+.status-dot {
+  display:inline-block; width:10px; height:10px; border-radius:50%;
+  margin-right:8px; background:var(--muted); transition:background .3s;
+}
+.on .status-dot { background:var(--green); box-shadow:0 0 6px var(--green); }
 
 /* ── 메인 디스플레이 ── */
 .display-box {
-  width:100%; max-width:640px;
+  width:100%; max-width:600px;
   background:var(--sur); border:2px solid var(--bdr);
-  border-radius:16px; padding:20px 24px;
-  display:flex; flex-direction:column; gap:12px;
+  border-radius:16px; padding:16px 20px;
+  display:flex; flex-direction:column; gap:10px;
 }
-.display-row {
-  display:grid; grid-template-columns:110px 1fr; align-items:center; gap:12px;
+.d-row {
+  display:grid; grid-template-columns:90px 1fr;
+  align-items:center; gap:10px;
 }
-.display-label {
-  font-size:0.72rem; font-weight:700; color:var(--muted);
+.d-lbl {
+  font-size:0.68rem; font-weight:700; color:var(--muted);
   letter-spacing:1px; text-transform:uppercase;
 }
-.display-value {
+.d-val {
   font-family:'JetBrains Mono',monospace;
-  font-size:1.1rem; font-weight:700; color:var(--txt);
+  font-size:1rem; font-weight:700; color:var(--txt);
   background:var(--sur2); border:1px solid var(--bdr);
-  border-radius:8px; padding:8px 14px;
-  min-height:42px; display:flex; align-items:center;
-  word-break:break-all; transition:border-color .2s, background .2s;
+  border-radius:8px; padding:7px 12px;
+  min-height:38px; display:flex; align-items:center;
+  word-break:break-all; transition:all .15s;
 }
-.display-value.highlight {
+.d-val.flash-blue {
   border-color:var(--accent);
-  background:rgba(91,141,238,.1);
-  animation:flash .3s ease-out;
+  background:rgba(91,141,238,.12);
+  animation:fblue .25s ease-out;
 }
-.display-value.matched {
+.d-val.flash-green {
   border-color:var(--green);
-  background:rgba(46,204,113,.1);
+  background:rgba(46,204,113,.12);
+  animation:fgreen .25s ease-out;
 }
-@keyframes flash {
-  0%  { background:rgba(91,141,238,.3); }
-  100%{ background:rgba(91,141,238,.08); }
-}
+@keyframes fblue  { from { background:rgba(91,141,238,.35); } }
+@keyframes fgreen { from { background:rgba(46,204,113,.35); } }
 
-/* key display */
-.key-big {
-  font-size:2rem; font-weight:900; color:var(--accent);
-  font-family:'JetBrains Mono',monospace;
-  letter-spacing:2px;
+.badge {
+  display:inline-block; padding:3px 10px; border-radius:14px;
+  font-size:0.74rem; font-weight:700; letter-spacing:1px;
 }
-
-/* 매치 배지 */
-.match-badge {
-  display:inline-block; padding:4px 12px; border-radius:20px;
-  font-size:0.78rem; font-weight:700; letter-spacing:1px;
-}
-.match-badge.yes { background:rgba(46,204,113,.2); color:var(--green); border:1px solid var(--green); }
-.match-badge.no  { background:rgba(231,76,60,.15);  color:var(--red);   border:1px solid var(--red); }
-.match-badge.wait{ background:var(--sur2); color:var(--muted); border:1px solid var(--bdr); }
+.badge.wait  { background:var(--sur2); color:var(--muted); border:1px solid var(--bdr); }
+.badge.yes   { background:rgba(46,204,113,.2); color:var(--green); border:1px solid var(--green); }
+.badge.no    { background:rgba(231,76,60,.15); color:var(--red); border:1px solid var(--red); }
 
 /* ── 로그 ── */
 .log-box {
-  width:100%; max-width:640px;
+  width:100%; max-width:600px;
   background:var(--sur); border:1px solid var(--bdr);
-  border-radius:16px; overflow:hidden;
+  border-radius:14px; overflow:hidden;
 }
-.log-header {
+.log-hdr {
   display:flex; align-items:center; justify-content:space-between;
-  padding:10px 16px; border-bottom:1px solid var(--bdr);
-  font-size:0.75rem; font-weight:700; color:var(--muted); letter-spacing:1px;
+  padding:8px 14px; border-bottom:1px solid var(--bdr);
+  font-size:0.72rem; font-weight:700; color:var(--muted);
 }
-.log-clear {
+.log-hdr span { color:var(--accent); }
+.clr-btn {
   background:none; border:1px solid var(--bdr); color:var(--muted);
-  font-family:'Noto Sans KR',sans-serif; font-size:0.72rem;
-  padding:3px 10px; border-radius:6px; cursor:pointer; transition:all .2s;
+  font-family:'Noto Sans KR',sans-serif; font-size:0.68rem;
+  padding:2px 9px; border-radius:6px; cursor:pointer; transition:all .2s;
 }
-.log-clear:hover { border-color:var(--red); color:var(--red); }
-.log-list {
-  max-height:280px; overflow-y:auto; padding:8px 0;
-}
+.clr-btn:hover { border-color:var(--red); color:var(--red); }
+.log-list { max-height:260px; overflow-y:auto; }
+.log-empty { padding:18px; text-align:center; color:var(--muted); font-size:0.78rem; }
 .log-item {
-  display:grid; grid-template-columns:44px 1fr 1fr 80px 60px;
-  align-items:center; gap:8px;
-  padding:6px 16px; border-bottom:1px solid rgba(255,255,255,.04);
-  font-size:0.75rem; transition:background .15s;
-  cursor:pointer;
+  display:grid; grid-template-columns:38px 1fr 1fr 72px 52px;
+  align-items:center; gap:6px; padding:5px 14px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:0.72rem;
 }
-.log-item:hover { background:var(--sur2); }
 .log-item:last-child { border-bottom:none; }
-.log-num  { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.7rem; }
-.log-key  { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); }
-.log-code { font-family:'JetBrains Mono',monospace; color:var(--txt); }
-.log-which{ font-family:'JetBrains Mono',monospace; color:var(--orange); }
-.log-match{ }
-.log-match.y { color:var(--green); font-weight:700; }
-.log-match.n { color:var(--muted); }
+.l-num  { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.66rem; }
+.l-key  { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); }
+.l-code { font-family:'JetBrains Mono',monospace; color:var(--txt); font-size:0.68rem; }
+.l-kc   { font-family:'JetBrains Mono',monospace; color:var(--orange); font-size:0.68rem; }
+.l-hit  { font-weight:700; }
+.l-hit.y { color:var(--green); }
+.l-hit.n { color:var(--muted); }
 
-/* ── 입력 포커스 영역 ── */
-.focus-area {
-  width:100%; max-width:640px;
-  background:var(--sur2); border:2px dashed var(--bdr);
-  border-radius:12px; padding:16px;
-  text-align:center; font-size:0.82rem; color:var(--muted);
-  cursor:pointer; transition:all .2s; position:relative;
-}
-.focus-area.focused {
-  border-color:var(--accent); color:var(--accent);
-  background:rgba(91,141,238,.06);
-}
-.focus-area .pulse {
-  display:inline-block; width:10px; height:10px; border-radius:50%;
-  background:var(--green); margin-right:6px;
-  animation:pulse 1.2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,100%{ opacity:1; transform:scale(1); }
-  50%    { opacity:.4; transform:scale(.7); }
-}
-/* 실제 input — 투명하게 위에 올려서 포커스 유지 */
-#hiddenInput {
-  position:absolute; inset:0; opacity:0; cursor:pointer;
-  width:100%; height:100%;
-}
-
-/* ── 필터 칩 ── */
+/* ── 이벤트 필터 ── */
 .filter-row {
   display:flex; flex-wrap:wrap; gap:6px;
-  width:100%; max-width:640px;
+  width:100%; max-width:600px; align-items:center;
 }
+.f-lbl { font-size:0.7rem; font-weight:700; color:var(--muted); white-space:nowrap; }
 .chip {
-  background:var(--sur2); border:1px solid var(--bdr);
-  color:var(--muted); font-family:'Noto Sans KR',sans-serif;
-  font-size:0.72rem; font-weight:700; padding:4px 12px;
-  border-radius:16px; cursor:pointer; transition:all .2s;
-  white-space:nowrap;
+  background:var(--sur2); border:1px solid var(--bdr); color:var(--muted);
+  font-family:'Noto Sans KR',sans-serif; font-size:0.7rem; font-weight:700;
+  padding:4px 12px; border-radius:14px; cursor:pointer; transition:all .2s;
 }
-.chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-/* ── 키보드 매핑 표 ── */
-.map-box {
-  width:100%; max-width:640px;
+/* ── 참조표 ── */
+.ref-box {
+  width:100%; max-width:600px;
   background:var(--sur); border:1px solid var(--bdr);
-  border-radius:16px; overflow:hidden;
+  border-radius:14px; overflow:hidden;
 }
-.map-header {
-  padding:10px 16px; border-bottom:1px solid var(--bdr);
-  font-size:0.75rem; font-weight:700; color:var(--muted); letter-spacing:1px;
+.ref-hdr {
+  padding:8px 14px; border-bottom:1px solid var(--bdr);
+  font-size:0.72rem; font-weight:700; color:var(--muted);
 }
-.map-grid {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+.ref-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
   gap:1px; background:var(--bdr);
 }
-.map-cell {
-  background:var(--sur); padding:8px 12px;
-  display:flex; flex-direction:column; gap:2px;
-  transition:background .15s;
+.ref-cell {
+  background:var(--sur); padding:7px 10px;
+  display:flex; flex-direction:column; gap:2px; cursor:pointer;
+  transition:background .1s;
 }
-.map-cell.hit {
-  background:rgba(46,204,113,.12);
-  animation:cellFlash .4s ease-out;
+.ref-cell:hover { background:var(--sur2); }
+.ref-cell.hit {
+  background:rgba(46,204,113,.15) !important;
+  animation:chit .4s ease-out;
 }
-@keyframes cellFlash {
-  0%  { background:rgba(46,204,113,.35); }
-  100%{ background:rgba(46,204,113,.12); }
-}
-.map-cell .mk { font-family:'JetBrains Mono',monospace; font-size:0.82rem; font-weight:700; color:var(--accent); }
-.map-cell .mc { font-size:0.65rem; color:var(--muted); }
+@keyframes chit { from { background:rgba(46,204,113,.5); } }
+.rc-key  { font-family:'JetBrains Mono',monospace; font-size:0.8rem; font-weight:700; color:var(--accent); }
+.rc-code { font-size:0.62rem; color:var(--muted); }
+.rc-kc   { font-size:0.62rem; color:var(--orange); }
 
-/* scrollbar */
-::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar { width:3px; }
 ::-webkit-scrollbar-thumb { background:var(--bdr); border-radius:2px; }
 
-@media (max-width:500px){
-  .log-item { grid-template-columns:36px 1fr 1fr 60px; }
-  .log-which { display:none; }
-  .display-row { grid-template-columns:90px 1fr; }
+@media (max-width:480px) {
+  .log-item { grid-template-columns:32px 1fr 1fr 56px; }
+  .l-kc { display:none; }
 }
 </style>
 </head>
 <body>
 
 <h1>🔵 BT Key Picker</h1>
-<p class="subtitle">블루투스 장치에서 버튼을 눌러 키 값을 확인하세요</p>
+<p class="sub">블루투스 장치의 키 값을 캡처하고 기본 동작을 차단합니다</p>
 
-<!-- 포커스 영역 -->
-<div class="focus-area" id="focusArea" onclick="focusInput()">
-  <input type="text" id="hiddenInput" readonly
-    onfocus="setFocused(true)" onblur="setFocused(false)">
-  <span id="focusLabel">📱 여기를 탭하여 입력 대기 시작</span>
+<!-- 캡처 ON/OFF 토글 -->
+<div class="toggle-wrap">
+  <button class="toggle-btn off" id="toggleBtn" onclick="toggleCapture()">
+    <span class="status-dot"></span>캡처 시작 (탭하여 활성화)
+  </button>
 </div>
 
-<!-- 메인 디스플레이 -->
+<!-- 디스플레이 -->
 <div class="display-box">
-  <div class="display-row">
-    <span class="display-label">Key</span>
-    <div class="display-value" id="dispKey"><span style="color:var(--muted)">—</span></div>
+  <div class="d-row">
+    <span class="d-lbl">key</span>
+    <div class="d-val" id="dKey"><span style="color:var(--muted)">—</span></div>
   </div>
-  <div class="display-row">
-    <span class="display-label">Code</span>
-    <div class="display-value" id="dispCode"><span style="color:var(--muted)">—</span></div>
+  <div class="d-row">
+    <span class="d-lbl">code</span>
+    <div class="d-val" id="dCode"><span style="color:var(--muted)">—</span></div>
   </div>
-  <div class="display-row">
-    <span class="display-label">keyCode</span>
-    <div class="display-value" id="dispKeyCode"><span style="color:var(--muted)">—</span></div>
+  <div class="d-row">
+    <span class="d-lbl">keyCode</span>
+    <div class="d-val" id="dKC"><span style="color:var(--muted)">—</span></div>
   </div>
-  <div class="display-row">
-    <span class="display-label">which</span>
-    <div class="display-value" id="dispWhich"><span style="color:var(--muted)">—</span></div>
+  <div class="d-row">
+    <span class="d-lbl">which</span>
+    <div class="d-val" id="dWhich"><span style="color:var(--muted)">—</span></div>
   </div>
-  <div class="display-row">
-    <span class="display-label">charCode</span>
-    <div class="display-value" id="dispChar"><span style="color:var(--muted)">—</span></div>
+  <div class="d-row">
+    <span class="d-lbl">type</span>
+    <div class="d-val" id="dType"><span style="color:var(--muted)">—</span></div>
   </div>
-  <div class="display-row">
-    <span class="display-label">type</span>
-    <div class="display-value" id="dispType"><span style="color:var(--muted)">—</span></div>
-  </div>
-  <div class="display-row">
-    <span class="display-label">매핑 일치</span>
-    <div class="display-value" id="dispMatch">
-      <span class="match-badge wait">대기 중</span>
-    </div>
+  <div class="d-row">
+    <span class="d-lbl">매핑 일치</span>
+    <div class="d-val" id="dMatch"><span class="badge wait">대기 중</span></div>
   </div>
 </div>
 
 <!-- 필터 -->
 <div class="filter-row">
-  <span style="font-size:0.72rem;color:var(--muted);align-self:center;font-weight:700;">이벤트 타입:</span>
-  <button class="chip active" onclick="toggleFilter('keydown',this)">keydown</button>
-  <button class="chip active" onclick="toggleFilter('keyup',this)">keyup</button>
-  <button class="chip" onclick="toggleFilter('keypress',this)">keypress</button>
-  <button class="chip" onclick="toggleFilter('input',this)">input</button>
+  <span class="f-lbl">이벤트:</span>
+  <button class="chip on"  data-type="keydown"   onclick="toggleFilter(this)">keydown</button>
+  <button class="chip on"  data-type="keyup"     onclick="toggleFilter(this)">keyup</button>
+  <button class="chip"     data-type="keypress"  onclick="toggleFilter(this)">keypress</button>
 </div>
 
 <!-- 로그 -->
 <div class="log-box">
-  <div class="log-header">
-    <span>📋 이벤트 로그 <span id="logCount" style="color:var(--accent)">0</span>개</span>
-    <button class="log-clear" onclick="clearLog()">전체 삭제</button>
+  <div class="log-hdr">
+    📋 로그 <span id="logCnt">0</span>건
+    <button class="clr-btn" onclick="clearLog()">삭제</button>
   </div>
   <div class="log-list" id="logList">
-    <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.8rem;">
-      버튼을 누르면 여기에 기록됩니다
-    </div>
+    <div class="log-empty">캡처 시작 후 블루투스 버튼을 누르세요</div>
   </div>
 </div>
 
-<!-- 키보드 매핑 참조표 -->
-<div class="map-box">
-  <div class="map-header">⌨️ 주요 키 매핑 참조표 (클릭하면 강조)</div>
-  <div class="map-grid" id="mapGrid"></div>
+<!-- 참조표 -->
+<div class="ref-box">
+  <div class="ref-hdr">⌨️ 키 매핑 참조표</div>
+  <div class="ref-grid" id="refGrid"></div>
 </div>
 
 <script>
-// ── 키 매핑 참조표 ──────────────────────────
-const KEY_MAP = [
-  { key:'Enter',     code:'Enter',        keyCode:13  },
-  { key:'Escape',    code:'Escape',       keyCode:27  },
-  { key:' ',         code:'Space',        keyCode:32  },
-  { key:'ArrowUp',   code:'ArrowUp',      keyCode:38  },
-  { key:'ArrowDown', code:'ArrowDown',    keyCode:40  },
-  { key:'ArrowLeft', code:'ArrowLeft',    keyCode:37  },
-  { key:'ArrowRight',code:'ArrowRight',   keyCode:39  },
-  { key:'PageUp',    code:'PageUp',       keyCode:33  },
-  { key:'PageDown',  code:'PageDown',     keyCode:34  },
-  { key:'Home',      code:'Home',         keyCode:36  },
-  { key:'End',       code:'End',          keyCode:35  },
-  { key:'Tab',       code:'Tab',          keyCode:9   },
-  { key:'Backspace', code:'Backspace',    keyCode:8   },
-  { key:'Delete',    code:'Delete',       keyCode:46  },
-  { key:'F1',        code:'F1',           keyCode:112 },
-  { key:'F2',        code:'F2',           keyCode:113 },
-  { key:'F5',        code:'F5',           keyCode:116 },
-  { key:'MediaPlayPause', code:'MediaPlayPause', keyCode:179 },
-  { key:'MediaStop',      code:'MediaStop',      keyCode:178 },
-  { key:'MediaTrackNext', code:'MediaTrackNext', keyCode:176 },
-  { key:'MediaTrackPrevious','code':'MediaTrackPrevious',keyCode:177 },
-  { key:'VolumeUp',   code:'VolumeUp',    keyCode:175 },
-  { key:'VolumeDown', code:'VolumeDown',  keyCode:174 },
-  { key:'a', code:'KeyA', keyCode:65 },
-  { key:'b', code:'KeyB', keyCode:66 },
-  { key:'c', code:'KeyC', keyCode:67 },
-  { key:'d', code:'KeyD', keyCode:68 },
-  { key:'0', code:'Digit0', keyCode:48 },
-  { key:'1', code:'Digit1', keyCode:49 },
-  { key:'2', code:'Digit2', keyCode:50 },
-  { key:'5', code:'Digit5', keyCode:53 },
+// ── 참조표 데이터 ───────────────────────────
+const KEYS = [
+  {key:'Enter',      code:'Enter',              kc:13 },
+  {key:'Escape',     code:'Escape',             kc:27 },
+  {key:' ',          code:'Space',              kc:32 },
+  {key:'ArrowUp',    code:'ArrowUp',            kc:38 },
+  {key:'ArrowDown',  code:'ArrowDown',          kc:40 },
+  {key:'ArrowLeft',  code:'ArrowLeft',          kc:37 },
+  {key:'ArrowRight', code:'ArrowRight',         kc:39 },
+  {key:'PageUp',     code:'PageUp',             kc:33 },
+  {key:'PageDown',   code:'PageDown',           kc:34 },
+  {key:'Home',       code:'Home',               kc:36 },
+  {key:'End',        code:'End',                kc:35 },
+  {key:'Tab',        code:'Tab',                kc:9  },
+  {key:'Backspace',  code:'Backspace',          kc:8  },
+  {key:'Delete',     code:'Delete',             kc:46 },
+  {key:'Insert',     code:'Insert',             kc:45 },
+  {key:'F1',         code:'F1',                 kc:112},
+  {key:'F2',         code:'F2',                 kc:113},
+  {key:'F5',         code:'F5',                 kc:116},
+  {key:'MediaPlayPause',code:'MediaPlayPause',  kc:179},
+  {key:'MediaStop',     code:'MediaStop',       kc:178},
+  {key:'MediaTrackNext',code:'MediaTrackNext',  kc:176},
+  {key:'MediaTrackPrevious',code:'MediaTrackPrevious',kc:177},
+  {key:'AudioVolumeUp',  code:'VolumeUp',       kc:175},
+  {key:'AudioVolumeDown',code:'VolumeDown',     kc:174},
+  {key:'AudioVolumeMute',code:'VolumeMute',     kc:173},
+  {key:'a', code:'KeyA', kc:65}, {key:'b', code:'KeyB', kc:66},
+  {key:'c', code:'KeyC', kc:67}, {key:'d', code:'KeyD', kc:68},
+  {key:'e', code:'KeyE', kc:69}, {key:'f', code:'KeyF', kc:70},
+  {key:'0', code:'Digit0', kc:48}, {key:'1', code:'Digit1', kc:49},
+  {key:'2', code:'Digit2', kc:50}, {key:'3', code:'Digit3', kc:51},
+  {key:'4', code:'Digit4', kc:52}, {key:'5', code:'Digit5', kc:53},
 ];
 
-// 매핑 표 렌더
-const mapGrid = document.getElementById('mapGrid');
-KEY_MAP.forEach((m,i) => {
-  const cell = document.createElement('div');
-  cell.className = 'map-cell';
-  cell.id = 'mc_' + i;
-  cell.innerHTML = `
-    <span class="mk">${m.key === ' ' ? 'Space' : m.key}</span>
-    <span class="mc">code: ${m.code}</span>
-    <span class="mc">keyCode: ${m.keyCode}</span>`;
-  cell.onclick = () => highlightCell(i);
-  mapGrid.appendChild(cell);
+// 참조표 렌더
+const refGrid = document.getElementById('refGrid');
+KEYS.forEach((m,i) => {
+  const c = document.createElement('div');
+  c.className = 'ref-cell'; c.id = 'rc'+i;
+  c.innerHTML = `
+    <span class="rc-key">${m.key===' '?'[Space]':m.key}</span>
+    <span class="rc-code">${m.code}</span>
+    <span class="rc-kc">kc:${m.kc}</span>`;
+  refGrid.appendChild(c);
 });
 
 // ── 상태 ────────────────────────────────────
-let logData = [];
-let logCount = 0;
+let capturing = false;
+let logData = [], logSeq = 0;
 let activeFilters = new Set(['keydown','keyup']);
-let isFocused = false;
 
-// ── 포커스 ───────────────────────────────────
-function focusInput() {
-  document.getElementById('hiddenInput').focus();
-}
-function setFocused(v) {
-  isFocused = v;
-  const area = document.getElementById('focusArea');
-  const lbl  = document.getElementById('focusLabel');
-  area.classList.toggle('focused', v);
-  lbl.innerHTML = v
-    ? '<span class="pulse"></span>입력 대기 중 — 블루투스 버튼을 눌러보세요'
-    : '📱 여기를 탭하여 입력 대기 시작';
+// ── 캡처 토글 ────────────────────────────────
+function toggleCapture() {
+  capturing = !capturing;
+  const btn = document.getElementById('toggleBtn');
+  btn.className = 'toggle-btn ' + (capturing ? 'on' : 'off');
+  btn.innerHTML = capturing
+    ? '<span class="status-dot"></span>🟢 캡처 중 — 블루투스 버튼을 눌러보세요'
+    : '<span class="status-dot"></span>캡처 시작 (탭하여 활성화)';
 }
 
-// 페이지 로드 시 자동 포커스
-window.addEventListener('load', () => setTimeout(focusInput, 300));
-
-// ── 이벤트 필터 ──────────────────────────────
-function toggleFilter(type, btn) {
-  if(activeFilters.has(type)) activeFilters.delete(type);
-  else activeFilters.add(type);
-  btn.classList.toggle('active', activeFilters.has(type));
-}
-
-// ── 이벤트 처리 ──────────────────────────────
-function handleEvent(e) {
+// ── 이벤트 핸들러 (capture:true — 최우선 포획) ──
+function onKey(e) {
+  if(!capturing) return;
   if(!activeFilters.has(e.type)) return;
 
-  const key      = e.key      || '';
-  const code     = e.code     || '';
-  const keyCode  = e.keyCode  || 0;
-  const which    = e.which    || 0;
-  const charCode = e.charCode || 0;
+  // ★ 기본 동작 + 전파 완전 차단
+  e.preventDefault();
+  e.stopImmediatePropagation();
 
-  // 매핑 일치 검색
-  const matched = KEY_MAP.filter(m =>
-    m.key === key || m.code === code || m.keyCode === keyCode
+  const key  = e.key   || '';
+  const code = e.code  || '';
+  const kc   = e.keyCode || 0;
+  const wh   = e.which   || 0;
+
+  // 매핑 검색
+  const hits = KEYS.filter(m =>
+    (key  && m.key  === key)  ||
+    (code && m.code === code) ||
+    (kc   && m.kc   === kc)
   );
+  const matched = hits.length > 0;
 
-  // 디스플레이 업데이트
-  const hl = (id, val) => {
-    const el = document.getElementById(id);
-    el.innerHTML = `<span>${val}</span>`;
-    el.classList.remove('highlight','matched');
-    void el.offsetWidth;
-    el.classList.add(matched.length ? 'matched' : 'highlight');
-  };
-  hl('dispKey',     key     || '(없음)');
-  hl('dispCode',    code    || '(없음)');
-  hl('dispKeyCode', keyCode || '—');
-  hl('dispWhich',   which   || '—');
-  hl('dispChar',    charCode|| '—');
-  hl('dispType',    e.type);
+  // 디스플레이
+  setVal('dKey',   key   || '(없음)', matched);
+  setVal('dCode',  code  || '(없음)', matched);
+  setVal('dKC',    String(kc||'—'),   matched);
+  setVal('dWhich', String(wh||'—'),   matched);
+  setVal('dType',  e.type,            matched);
 
-  const matchEl = document.getElementById('dispMatch');
-  if(matched.length) {
-    matchEl.innerHTML = `<span class="match-badge yes">✓ 일치 — ${matched.map(m=>m.key==' '?'Space':m.key).join(', ')}</span>`;
-    // 매핑 표 셀 강조
-    matched.forEach(m => {
-      const idx = KEY_MAP.indexOf(m);
-      highlightCell(idx);
-    });
-  } else {
-    matchEl.innerHTML = `<span class="match-badge no">✗ 매핑 없음</span>`;
-  }
+  const mEl = document.getElementById('dMatch');
+  mEl.innerHTML = matched
+    ? `<span class="badge yes">✓ ${hits.map(m=>m.key===' '?'[Space]':m.key).join(', ')}</span>`
+    : `<span class="badge no">✗ 매핑 없음</span>`;
 
-  // 로그 추가
-  logCount++;
-  logData.unshift({ num:logCount, type:e.type, key, code, keyCode, which, matched:matched.length>0 });
+  // 참조표 강조
+  hits.forEach(m => {
+    const idx = KEYS.indexOf(m);
+    const cell = document.getElementById('rc'+idx);
+    if(cell){ cell.classList.remove('hit'); void cell.offsetWidth; cell.classList.add('hit'); }
+  });
+
+  // 로그
+  logSeq++;
+  logData.unshift({n:logSeq, type:e.type, key:key||'?', code:code||'?', kc, matched});
   renderLog();
-
-  // Tab/Enter 기본 동작 방지
-  if(['Tab','Enter',' '].includes(key)) e.preventDefault();
 }
 
-// keydown/keyup/keypress
+// capture:true 로 등록 — 다른 핸들러보다 먼저 실행, stopImmediatePropagation 효과적
 ['keydown','keyup','keypress'].forEach(t =>
-  document.addEventListener(t, handleEvent)
+  window.addEventListener(t, onKey, { capture:true })
 );
-// input 이벤트 (일부 BT 장치는 keydown 없이 input만 발생)
-document.getElementById('hiddenInput').addEventListener('input', e => {
-  if(!activeFilters.has('input')) return;
-  const val = e.data || e.target.value;
-  const fake = { type:'input', key:val, code:'', keyCode:0, which:0, charCode:0, preventDefault:()=>{} };
-  handleEvent(fake);
-  e.target.value = '';
-});
 
-// ── 로그 렌더 ────────────────────────────────
+// ── 유틸 ────────────────────────────────────
+function setVal(id, val, matched) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.className = 'd-val';
+  void el.offsetWidth;
+  el.classList.add(matched ? 'flash-green' : 'flash-blue');
+}
+
 function renderLog() {
+  document.getElementById('logCnt').textContent = logData.length;
   const list = document.getElementById('logList');
-  document.getElementById('logCount').textContent = logData.length;
   if(!logData.length) {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:0.8rem;">버튼을 누르면 여기에 기록됩니다</div>';
+    list.innerHTML = '<div class="log-empty">캡처 시작 후 블루투스 버튼을 누르세요</div>';
     return;
   }
-  list.innerHTML = logData.slice(0,60).map(d => `
+  list.innerHTML = logData.slice(0,80).map(d=>`
     <div class="log-item">
-      <span class="log-num">#${d.num}</span>
-      <span class="log-key">${d.key === ' ' ? '[Space]' : (d.key||'?')}</span>
-      <span class="log-code">${d.code||d.type}</span>
-      <span class="log-which">${d.keyCode||'—'}</span>
-      <span class="log-match ${d.matched?'y':'n'}">${d.matched?'✓ 일치':'—'}</span>
+      <span class="l-num">#${d.n}</span>
+      <span class="l-key">${d.key===' '?'[Sp]':d.key}</span>
+      <span class="l-code">${d.code}</span>
+      <span class="l-kc">${d.kc||'—'}</span>
+      <span class="l-hit ${d.matched?'y':'n'}">${d.matched?'✓ 일치':'—'}</span>
     </div>`).join('');
 }
 
 function clearLog() {
-  logData = []; logCount = 0; renderLog();
-  ['dispKey','dispCode','dispKeyCode','dispWhich','dispChar','dispType'].forEach(id => {
+  logData = []; logSeq = 0; renderLog();
+  ['dKey','dCode','dKC','dWhich','dType'].forEach(id => {
     document.getElementById(id).innerHTML = '<span style="color:var(--muted)">—</span>';
-    document.getElementById(id).className = 'display-value';
+    document.getElementById(id).className = 'd-val';
   });
-  document.getElementById('dispMatch').innerHTML = '<span class="match-badge wait">대기 중</span>';
+  document.getElementById('dMatch').innerHTML = '<span class="badge wait">대기 중</span>';
 }
 
-// ── 매핑 표 셀 강조 ──────────────────────────
-function highlightCell(idx) {
-  const cell = document.getElementById('mc_' + idx);
-  if(!cell) return;
-  cell.classList.remove('hit');
-  void cell.offsetWidth;
-  cell.classList.add('hit');
-  cell.scrollIntoView({ behavior:'smooth', block:'nearest' });
+function toggleFilter(btn) {
+  const t = btn.dataset.type;
+  if(activeFilters.has(t)) activeFilters.delete(t);
+  else activeFilters.add(t);
+  btn.classList.toggle('on', activeFilters.has(t));
 }
 </script>
 </body>
