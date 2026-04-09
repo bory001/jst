@@ -2,2004 +2,455 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>보탁 참석자 조사 시스템</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a3a5c">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BT Key Picker</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+:root {
+  --bg:#0d0d14; --sur:#13131e; --sur2:#1a1a28;
+  --bdr:#2a2a3e; --txt:#f0f0f8; --muted:#6060a0;
+  --accent:#5b8dee; --green:#2ecc71; --orange:#f5a400;
+  --red:#e74c3c; --gold:#f4c430;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg); color:var(--txt);
+  min-height:100dvh; display:flex; flex-direction:column;
+  align-items:center; padding:20px 16px; gap:16px;
+  user-select:none;
+}
 
-  :root {
-    --primary: #1a3a5c;
-    --primary-light: #2d5f8a;
-    --bg: #f4f6f9;
-    --surface: #ffffff;
-    --border: #dde3ec;
-    --text: #1a2433;
-    --text-muted: #7a8ba0;
-    --accent: #10b981;
-    --accent-light: #d1fae5;
-    --danger: #ef4444;
-  }
+h1 {
+  font-size:1.4rem; font-weight:900; color:var(--gold);
+  letter-spacing:2px; text-align:center; margin-top:8px;
+}
+.subtitle { font-size:0.8rem; color:var(--muted); text-align:center; margin-top:-8px; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+/* ── 메인 디스플레이 ── */
+.display-box {
+  width:100%; max-width:640px;
+  background:var(--sur); border:2px solid var(--bdr);
+  border-radius:16px; padding:20px 24px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.display-row {
+  display:grid; grid-template-columns:110px 1fr; align-items:center; gap:12px;
+}
+.display-label {
+  font-size:0.72rem; font-weight:700; color:var(--muted);
+  letter-spacing:1px; text-transform:uppercase;
+}
+.display-value {
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.1rem; font-weight:700; color:var(--txt);
+  background:var(--sur2); border:1px solid var(--bdr);
+  border-radius:8px; padding:8px 14px;
+  min-height:42px; display:flex; align-items:center;
+  word-break:break-all; transition:border-color .2s, background .2s;
+}
+.display-value.highlight {
+  border-color:var(--accent);
+  background:rgba(91,141,238,.1);
+  animation:flash .3s ease-out;
+}
+.display-value.matched {
+  border-color:var(--green);
+  background:rgba(46,204,113,.1);
+}
+@keyframes flash {
+  0%  { background:rgba(91,141,238,.3); }
+  100%{ background:rgba(91,141,238,.08); }
+}
 
-  /* ── 로그인 화면 ── */
-  #loginScreen {
-    position:fixed; inset:0; background:#0a0a0f;
-    display:flex; align-items:center; justify-content:flex-start; padding-top:0; padding-bottom:40px; z-index:9999;
-    flex-direction:column; overflow-y:auto;
-  }
-  /* 상단 이미지 오버레이 영역 (타이틀 + 성명 입력까지) */
-  .login-hero-area {
-    width:100%;
-    position:relative;
-    /* 원본 비율 유지: 768/1376 = 55.8% */
-    padding-bottom: 55.8%;
-    background: linear-gradient(rgba(10,10,15,0.25), rgba(10,10,15,0.35)),
-                url('login.png') center center / 100% 100% no-repeat;
-    flex-shrink: 0;
-  }
-  /* 이미지 위 텍스트 절대 배치 */
-  .login-hero-content {
-    position:absolute; inset:0;
-    display:flex; flex-direction:column; align-items:center;
-    justify-content:flex-end; padding: 0 16px 8%;
-  }
-  /* 하단 비번 영역 (순수 검정) */
-  .login-pw-area {
-    display:flex; flex-direction:column; align-items:center;
-    width:100%; padding-top:16px;
-  }
-  .login-box { display:flex; flex-direction:column; align-items:center; width:100%; }
-  .login-title-row { display:flex; align-items:center; gap:10px; margin-bottom:1px; }
-  .login-icon { font-size:36px; line-height:1; }
-  .login-title { font-size:1.4rem; font-weight:900; color:#ffffff; letter-spacing:2px; margin-bottom:0; text-shadow:0 1px 6px rgba(0,0,0,0.8); }
-  .login-sub { font-size:0.95rem; color:rgba(255,255,255,0.85); font-weight:700; margin-bottom:6px; letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
-  .login-name-wrap { display:flex; flex-direction:row; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:nowrap; }
-  .login-name-label { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.85); letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,0.8); white-space:nowrap; }
-  .login-name-input {
-    width:80px; padding:5px 6px; border:1px solid rgba(255,255,255,0.2);
-    border-radius:10px; font-size:16px; font-family:inherit;
-    text-align:center; outline:none; background:rgba(10,10,15,0.35);
-    color:#f0f0f5; transition:border-color 0.15s; letter-spacing:1px;
-  }
-  .login-name-input::placeholder { color:#2a2a3a; }
-  .login-busoo-label { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.85); letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,0.8); white-space:nowrap; }
-  .login-busoo-input {
-    width:44px; padding:4px 6px; border:1px solid rgba(255,255,255,0.2);
-    border-radius:10px; font-size:18px; font-family:inherit;
-    text-align:center; outline:none; background:rgba(10,10,15,0.35);
-    color:#f0f0f5; transition:border-color 0.15s;
-  }
-  .login-busoo-input:focus { border-color:#3498db; }
-  .login-busoo-input.error { border-color:#e74c3c; animation: shake 0.35s; }
-  .login-jo-label { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.85); letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,0.8); white-space:nowrap; }
-  .login-jo-input {
-    width:90px; padding:4px 6px; border:1px solid rgba(255,255,255,0.2);
-    border-radius:10px; font-size:16px; font-family:inherit;
-    text-align:center; outline:none; background:rgba(10,10,15,0.35);
-    color:#f0f0f5; transition:border-color 0.15s;
-  }
-  .login-jo-input:focus { border-color:#3498db; }
-  .login-jo-input.error { border-color:#e74c3c; animation: shake 0.35s; }
-  .login-name-input:focus { border-color:#3498db; }
-  .login-name-input.error { border-color:#e74c3c; animation: shake 0.35s; }
-  .login-saved-hint { font-size:0.68rem; color:rgba(255,255,255,0.6); margin-top:5px; text-align:center; }
-  .login-saved-hint strong { color:rgba(255,255,255,0.9); }
-  .login-error { font-size:0.72rem; font-weight:700; min-height:16px; margin-bottom:8px; color:#e74c3c; text-align:center; letter-spacing:0.5px; }
-  .pw-dots { display:flex; gap:14px; margin-bottom:12px; }
-  .pw-dot { width:16px; height:16px; border-radius:50%; border:2px solid #2a2a3a; background:transparent; transition:all .2s; }
-  .pw-dot.filled { background:#3498db; border-color:#3498db; box-shadow:0 0 8px rgba(52,152,219,.5); }
-  .pw-dot.error { background:#e74c3c; border-color:#e74c3c; }
-  .pw-sub-label { font-size:1.24rem; color:#ffffff; font-weight:700; margin-bottom:8px; letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
-  .pw-keypad { display:grid; grid-template-columns:repeat(3,72px); gap:10px; }
-  .kbtn {
-    height:66px; border-radius:14px; background:#18181f; border:1px solid #252530;
-    color:#f0f0f5; font-family:inherit; font-size:1.4rem; font-weight:900;
-    cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center;
-    -webkit-tap-highlight-color:transparent; user-select:none;
-  }
-  .kbtn:active { background:#252535; transform:scale(.93); }
-  .kbtn.del { font-size:1.1rem; color:#5a5a72; }
-  .kbtn.empty { visibility:hidden; }
-  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+/* key display */
+.key-big {
+  font-size:2rem; font-weight:900; color:var(--accent);
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:2px;
+}
 
-  /* 비번 변경 모달 */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display: none; align-items: center; justify-content: center; z-index: 500; padding: 1rem;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box {
-    background: white; border-radius: 16px; padding: 1.75rem;
-    width: 100%; max-width: 360px;
-  }
-  .modal-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 1.2rem; }
-  .modal-label { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .modal-input {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--text);
-    outline: none; transition: border-color 0.15s; margin-bottom: 0.75rem;
-  }
-  .modal-input:focus { border-color: var(--primary); }
-  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0.5rem; }
-  .modal-cancel {
-    padding: 10px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; font-size: 14px; font-family: inherit; cursor: pointer;
-  }
-  .modal-confirm {
-    padding: 10px; background: var(--primary); color: white; border: none;
-    border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
-  }
-  .modal-error { font-size: 12px; color: var(--danger); min-height: 16px; margin-bottom: 0.25rem; }
+/* 매치 배지 */
+.match-badge {
+  display:inline-block; padding:4px 12px; border-radius:20px;
+  font-size:0.78rem; font-weight:700; letter-spacing:1px;
+}
+.match-badge.yes { background:rgba(46,204,113,.2); color:var(--green); border:1px solid var(--green); }
+.match-badge.no  { background:rgba(231,76,60,.15);  color:var(--red);   border:1px solid var(--red); }
+.match-badge.wait{ background:var(--sur2); color:var(--muted); border:1px solid var(--bdr); }
 
-  /* ── 앱 ── */
-  #app { display: none; }
+/* ── 로그 ── */
+.log-box {
+  width:100%; max-width:640px;
+  background:var(--sur); border:1px solid var(--bdr);
+  border-radius:16px; overflow:hidden;
+}
+.log-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; border-bottom:1px solid var(--bdr);
+  font-size:0.75rem; font-weight:700; color:var(--muted); letter-spacing:1px;
+}
+.log-clear {
+  background:none; border:1px solid var(--bdr); color:var(--muted);
+  font-family:'Noto Sans KR',sans-serif; font-size:0.72rem;
+  padding:3px 10px; border-radius:6px; cursor:pointer; transition:all .2s;
+}
+.log-clear:hover { border-color:var(--red); color:var(--red); }
+.log-list {
+  max-height:280px; overflow-y:auto; padding:8px 0;
+}
+.log-item {
+  display:grid; grid-template-columns:44px 1fr 1fr 80px 60px;
+  align-items:center; gap:8px;
+  padding:6px 16px; border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:0.75rem; transition:background .15s;
+  cursor:pointer;
+}
+.log-item:hover { background:var(--sur2); }
+.log-item:last-child { border-bottom:none; }
+.log-num  { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.7rem; }
+.log-key  { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); }
+.log-code { font-family:'JetBrains Mono',monospace; color:var(--txt); }
+.log-which{ font-family:'JetBrains Mono',monospace; color:var(--orange); }
+.log-match{ }
+.log-match.y { color:var(--green); font-weight:700; }
+.log-match.n { color:var(--muted); }
 
-  header {
-    background: var(--primary); color: white; padding: 0.5rem 1rem;
-    min-height: 56px; display: flex; align-items: center;
-    justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 8px;
-  }
-  .header-left h1 { font-size: 18px; font-weight: 700; white-space: nowrap; }
-  .header-left .subtitle { font-size: 13px; opacity: 0.7; white-space: nowrap; padding-left: 22px; }
-  .header-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-  .user-badge {
-    display: flex; align-items: center; gap: 5px;
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 500;
-  }
-  .user-dot { width: 6px; height: 6px; border-radius: 50%; background: #6ee7b7; flex-shrink: 0; }
-  .sync-dot-wrap { display: flex; align-items: center; gap: 4px; }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
-  .sync-dot.off { background: var(--danger); }
-  .sync-label { font-size: 10px; color: #6ee7b7; }
-  .hdr-btn {
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    color: white; padding: 5px 7px; border-radius: 16px; font-size: 11px;
-    font-family: inherit; cursor: pointer; white-space: nowrap;
-  }
-  .hdr-attend-btn.register { background: var(--accent); border-color: var(--accent); }
-  .hdr-attend-btn.cancel { background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.7); }
-  @media (max-width: 480px) {
-    header { padding: 0.4rem 0.5rem; }
-    .header-left h1 { font-size: 15px; }
-    .header-left .subtitle { font-size: 12px; padding-left: 18px; }
-    .hdr-btn { font-size: 10px; padding: 4px 5px; }
-    .sync-dot-wrap { display: none; }
-  }
-  @media (max-width: 400px) {
-    .header-left h1 { font-size: 14px; }
-    .hdr-btn { font-size: 9px; padding: 4px 4px; }
-    .header-right { gap: 3px; }
-  }
+/* ── 입력 포커스 영역 ── */
+.focus-area {
+  width:100%; max-width:640px;
+  background:var(--sur2); border:2px dashed var(--bdr);
+  border-radius:12px; padding:16px;
+  text-align:center; font-size:0.82rem; color:var(--muted);
+  cursor:pointer; transition:all .2s; position:relative;
+}
+.focus-area.focused {
+  border-color:var(--accent); color:var(--accent);
+  background:rgba(91,141,238,.06);
+}
+.focus-area .pulse {
+  display:inline-block; width:10px; height:10px; border-radius:50%;
+  background:var(--green); margin-right:6px;
+  animation:pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100%{ opacity:1; transform:scale(1); }
+  50%    { opacity:.4; transform:scale(.7); }
+}
+/* 실제 input — 투명하게 위에 올려서 포커스 유지 */
+#hiddenInput {
+  position:absolute; inset:0; opacity:0; cursor:pointer;
+  width:100%; height:100%;
+}
 
-  /* ── 레이아웃 ── */
-  .main-layout {
-    display: grid; grid-template-columns: 1fr 320px;
-    gap: 1.5rem; padding: 1.5rem; max-width: 1100px; margin: 0 auto;
-  }
-  .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+/* ── 필터 칩 ── */
+.filter-row {
+  display:flex; flex-wrap:wrap; gap:6px;
+  width:100%; max-width:640px;
+}
+.chip {
+  background:var(--sur2); border:1px solid var(--bdr);
+  color:var(--muted); font-family:'Noto Sans KR',sans-serif;
+  font-size:0.72rem; font-weight:700; padding:4px 12px;
+  border-radius:16px; cursor:pointer; transition:all .2s;
+  white-space:nowrap;
+}
+.chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-  /* ── 달력 ── */
-  .calendar-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
-  }
-  .calendar-header h2 { font-size: 17px; font-weight: 700; color: var(--primary); }
-  .nav-btn {
-    background: none; border: 1px solid var(--border); border-radius: 8px;
-    width: 34px; height: 34px; cursor: pointer; font-size: 16px; color: var(--text);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .nav-btn:hover { background: var(--bg); }
-  .weekdays { display: grid; grid-template-columns: repeat(7,1fr); padding: 8px 10px 4px; gap: 2px; }
-  .weekday { text-align: center; font-size: 11px; font-weight: 500; color: var(--text-muted); }
-  .weekday:first-child { color: var(--danger); }
-  .weekday:last-child { color: #3b82f6; }
+/* ── 키보드 매핑 표 ── */
+.map-box {
+  width:100%; max-width:640px;
+  background:var(--sur); border:1px solid var(--bdr);
+  border-radius:16px; overflow:hidden;
+}
+.map-header {
+  padding:10px 16px; border-bottom:1px solid var(--bdr);
+  font-size:0.75rem; font-weight:700; color:var(--muted); letter-spacing:1px;
+}
+.map-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:1px; background:var(--bdr);
+}
+.map-cell {
+  background:var(--sur); padding:8px 12px;
+  display:flex; flex-direction:column; gap:2px;
+  transition:background .15s;
+}
+.map-cell.hit {
+  background:rgba(46,204,113,.12);
+  animation:cellFlash .4s ease-out;
+}
+@keyframes cellFlash {
+  0%  { background:rgba(46,204,113,.35); }
+  100%{ background:rgba(46,204,113,.12); }
+}
+.map-cell .mk { font-family:'JetBrains Mono',monospace; font-size:0.82rem; font-weight:700; color:var(--accent); }
+.map-cell .mc { font-size:0.65rem; color:var(--muted); }
 
-  .days-grid { display: grid; grid-template-columns: repeat(7,1fr); padding: 3px 8px 8px; gap: 2px; }
-  .day-cell {
-    border-radius: 6px; padding: 3px 3px 2px; cursor: pointer;
-    transition: background 0.15s; display: flex; flex-direction: column;
-    align-items: center; min-height: 0; border: 1px solid transparent;
-  }
-  .day-cell:hover:not(.other-month) { background: #eef3fa; border-color: var(--border); }
-  .day-cell.today { background: #eff6ff; border-color: #93c5fd; }
-  .day-cell.selected { background: var(--primary); border-color: var(--primary); }
-  .day-cell.selected .day-num { color: white !important; }
-  .day-cell.other-month { opacity: 0.3; cursor: default; }
-  .day-num { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--text); }
-  .day-cell:nth-child(7n+1) .day-num { color: var(--danger); }
-  .day-cell:nth-child(7n) .day-num { color: #3b82f6; }
-  .day-cell.selected .day-num { color: white !important; }
+/* scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:var(--bdr); border-radius:2px; }
 
-  /* 달력 셀 참석 인원수 뱃지 */
-  .day-att-num {
-    font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
-    background: var(--accent-light); color: #065f46;
-    display: inline-block; line-height: 1.4; margin-top: 1px;
-  }
-  .day-cell.selected .day-att-num { background: rgba(255,255,255,0.25); color: white; }
-
-  /* ── 사이드바 ── */
-  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
-  .panel-header {
-    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .panel-header h3 { font-size: 14px; font-weight: 700; color: var(--primary); }
-  .panel-date-badge {
-    font-size: 11px; color: var(--text-muted); background: var(--bg);
-    padding: 3px 9px; border-radius: 20px; font-weight: 500;
-  }
-
-  /* 참석자 목록 */
-  .att-list { padding: 0 1rem 1rem; }
-  .att-empty {
-    padding: 1.5rem 0; text-align: center; color: var(--text-muted);
-    font-size: 13px; line-height: 1.8;
-  }
-  .att-count-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--accent-light); color: #065f46;
-    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
-    margin: 0.6rem 0 0.4rem;
-  }
-  /* 간소화된 이름 그리드 */
-  .att-name-grid {
-    display: flex; flex-wrap: wrap; gap: 2px;
-  }
-  .att-name-chip {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 4px; padding: 2px 3px;
-    font-size: 11px; font-weight: 600; color: var(--text);
-    text-align: center; cursor: pointer; user-select: none;
-    transition: all 0.12s; white-space: nowrap; display: inline-block;
-    width: fit-content; min-width: 0;
-  }
-  .att-name-chip:hover { border-color: var(--primary-light); background: #eef3fa; }
-  /* 메모 점 */
-  .day-memo-dot {
-    width:6px; height:6px; border-radius:50%; background:#f59e0b;
-    display:inline-block; margin-right:2px; vertical-align:middle; flex-shrink:0;
-  }
-  .day-cell.selected .day-memo-dot { background:#fde68a; }
-  .day-cell-bottom { display:flex; align-items:center; gap:2px; }
-  /* 메모 입력 영역 */
-  .mdp-memo-row {
-    display:flex; align-items:center; gap:6px;
-    margin-top:8px; padding-top:8px; border-top:1px solid var(--border);
-  }
-  .mdp-memo-input {
-    flex:1; padding:5px 8px; border:1px solid var(--border);
-    border-radius:6px; font-size:12px; font-family:inherit; color:var(--text);
-    outline:none; background:var(--surface); transition:border-color 0.15s;
-  }
-  .mdp-memo-input:focus { border-color:var(--primary); }
-  .mdp-memo-label { font-size:11px; color:var(--text-muted); font-weight:600; white-space:nowrap; }
-  .mdp-memo-save {
-    padding:5px 10px; background:var(--primary); color:white; border:none;
-    border-radius:6px; font-size:11px; font-weight:700; font-family:inherit; cursor:pointer;
-  }
-  /* 수동등록 버튼 */
-  .mdp-manual-btn {
-    padding:5px 10px; background:rgba(245,158,11,0.15); color:#b45309;
-    border:1px solid #fcd34d; border-radius:6px; font-size:11px;
-    font-weight:700; font-family:inherit; cursor:pointer; white-space:nowrap;
-  }
-  .mdp-manual-btn:hover { background:rgba(245,158,11,0.3); }
-  /* 수동등록 폼 */
-  .mdp-manual-form {
-    display:none; margin-top:8px; padding:8px; background:#fffbeb;
-    border:1px solid #fcd34d; border-radius:8px; gap:6px;
-    flex-direction:column;
-  }
-  .mdp-manual-row { display:flex; align-items:center; gap:6px; }
-  .mdp-manual-input {
-    flex:1; padding:6px 8px; border:1px solid var(--border);
-    border-radius:6px; font-size:13px; font-family:inherit; outline:none;
-  }
-  .mdp-manual-input:focus { border-color:var(--primary); }
-  .mdp-manual-busoo {
-    width:50px; padding:6px 4px; border:1px solid var(--border);
-    border-radius:6px; font-size:13px; font-family:inherit; outline:none; text-align:center;
-  }
-  .mdp-manual-submit {
-    padding:5px 8px; background:var(--accent); color:white; border:none;
-    border-radius:6px; font-size:11px; font-weight:700; font-family:inherit; cursor:pointer; white-space:nowrap;
-  }
-  /* 부수별 행 */
-  .busoo-row { display:flex; align-items:flex-start; gap:4px; width:100%; margin-bottom:2px; }
-  .busoo-label {
-    font-size:10px; font-weight:700; color:white; background:var(--primary);
-    border-radius:4px; padding:2px 5px; white-space:nowrap; flex-shrink:0;
-    min-width:24px; text-align:center; line-height:1.6;
-  }
-  .busoo-names { display:flex; flex-wrap:wrap; gap:2px; flex:1; }
-  .busoo-empty { display:none; }
-  .att-chip-tooltip {
-    position:fixed; background:rgba(26,42,51,0.95); color:white;
-    font-size:10px; font-weight:600; padding:4px 8px; border-radius:6px;
-    pointer-events:none; z-index:9999; white-space:nowrap;
-    transform:translate(-50%,-100%); margin-top:-4px;
-  }
-  .att-name-chip.mine { background: var(--accent-light); border-color: var(--accent); color: #065f46; }
-  .att-name-chip.mine:hover { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
-  /* 페이징 */
-  .att-paging {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    margin-top: 8px;
-  }
-  .att-page-btn {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-    padding: 4px 10px; font-size: 11px; font-family: inherit; cursor: pointer; font-weight: 600;
-  }
-  .att-page-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-  .att-page-btn:disabled { opacity: 0.35; cursor: default; }
-  .att-page-info { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-  .long-press-hint { font-size: 10px; color: var(--text-muted); padding: 0.4rem 0 0; text-align: center; }
-
-  /* ── 내 참석 버튼 ── */
-  .my-attend-section { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
-  .my-attend-btn {
-    width: 100%; padding: 12px; border: none; border-radius: 10px;
-    font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
-    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .my-attend-btn.register {
-    background: var(--accent); color: white;
-  }
-  .my-attend-btn.register:hover { background: #059669; }
-  .my-attend-btn.cancel {
-    background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca;
-  }
-  .my-attend-btn.cancel:hover { background: #fee2e2; }
-  .my-attend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* ── 모바일 하단 패널 ── */
-  .mobile-day-panel {
-    display: none; background: var(--surface);
-    border-top: 2px solid var(--primary); padding: 1rem;
-    animation: slideDown 0.2s ease;
-    border-radius: 0 0 12px 12px;
-  }
-  @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-  .mdp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-  .mdp-date { font-size: 15px; font-weight: 700; color: var(--primary); }
-  .mdp-att-count {
-    font-size: 12px; background: var(--accent-light); color: #065f46;
-    border-radius: 20px; padding: 3px 10px; font-weight: 700;
-  }
-  .mdp-att-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
-  .mdp-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 0.75rem 0 1rem; }
-  .mdp-attend-btn {
-    width: 100%; padding: 12px; border: none; border-radius: 10px;
-    font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
-    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .mdp-attend-btn.register { background: var(--accent); color: white; }
-  .mdp-attend-btn.register:hover { background: #059669; }
-  .mdp-attend-btn.cancel { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
-  .mdp-attend-btn.cancel:hover { background: #fee2e2; }
-
-  /* ── 토스트 ── */
-  .toast {
-    position: fixed; bottom: 1.5rem; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--primary); color: white;
-    padding: 11px 22px; border-radius: 10px; font-size: 13px; font-weight: 500;
-    z-index: 700; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.success { background: var(--accent); }
-  .toast.error { background: var(--danger); }
-
-  .loading-bar { position: fixed; top: 0; left: 0; height: 3px; background: #e8a020; width: 0%; transition: width 0.3s; z-index: 800; }
-
-  /* ── 관리자 통계 패널 ── */
-  .stats-section { padding: 1rem 1.25rem; }
-  .stats-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; }
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat-box {
-    background: var(--bg); border-radius: 10px; padding: 10px 12px;
-    text-align: center; border: 1px solid var(--border);
-  }
-  .stat-num { font-size: 22px; font-weight: 700; color: var(--primary); line-height: 1; }
-  .stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
-
-  /* 확인 팝업 제거됨 */
-
-  @media (max-width: 768px) {
-    .main-layout { grid-template-columns: 1fr; padding: 0.75rem; gap: 0.75rem; }
-    .sidebar { display: none; }
-    .mobile-day-panel { display: block; }
-    .days-grid { padding: 4px 6px 8px; gap: 2px; }
-    .day-cell { padding: 3px 2px 2px; border-radius: 5px; }
-    .day-num { font-size: 12px; }
-    .day-att-num { font-size: 8px; padding: 1px 4px; }
-    .weekdays { padding: 6px 6px 2px; }
-    .weekday { font-size: 11px; }
-    .calendar-header { padding: 0.75rem 1rem; }
-  }
-  @media (max-width: 380px) {
-    .day-num { font-size: 12px; }
-  }
-  /* ── 랭킹 모달 ── */
-  #rankingModal .modal-overlay { z-index: 600; }
-  .ranking-modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: none; align-items: flex-start; justify-content: center;
-    z-index: 600; padding: 1rem; overflow-y: auto;
-  }
-  .ranking-modal-overlay.show { display: flex; }
-  .ranking-modal-box {
-    background: white; border-radius: 16px; padding: 1.5rem;
-    width: 100%; max-width: 560px; margin: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    max-height: 90vh; overflow-y: auto;
-  }
-  .ranking-modal-title {
-    font-size: 17px; font-weight: 800; color: var(--primary);
-    margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
-  }
-  .ranking-period-tabs {
-    display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap;
-  }
-  .rp-tab {
-    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
-    border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted);
-    cursor: pointer; font-family: inherit; transition: all 0.15s;
-  }
-  .rp-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-  .ranking-view-tabs {
-    display: flex; gap: 6px; margin-bottom: 1rem;
-  }
-  .rv-tab {
-    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
-    border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted);
-    cursor: pointer; font-family: inherit; transition: all 0.15s;
-  }
-  .rv-tab.active { background: #6366f1; color: white; border-color: #6366f1; }
-  .ranking-table-wrap { overflow-x: auto; margin-bottom: 1rem; }
-  .ranking-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
-  }
-  .ranking-table th {
-    background: var(--primary); color: white; padding: 8px 10px;
-    text-align: center; font-size: 11px; font-weight: 700; white-space: nowrap;
-  }
-  .ranking-table th:nth-child(3) { text-align: left; }
-  .ranking-table td {
-    padding: 7px 10px; border-bottom: 1px solid var(--border);
-    text-align: center; vertical-align: middle;
-  }
-  .ranking-table td:nth-child(3) { text-align: left; font-weight: 600; }
-  .ranking-table tr:nth-child(even) td { background: #f8fafc; }
-  .ranking-table tr:hover td { background: #eff6ff; }
-  .rank-medal { font-size: 15px; }
-  .rank-num { font-weight: 800; color: var(--text-muted); font-size: 12px; }
-  .busoo-badge {
-    display: inline-block; background: var(--primary); color: white;
-    border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 700;
-    white-space: nowrap;
-  }
-  .att-count-num { font-weight: 800; color: var(--primary); font-size: 14px; }
-  .ranking-empty { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 13px; }
-  .ranking-close-btn {
-    width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; font-size: 14px; font-family: inherit; cursor: pointer; font-weight: 600;
-  }
-  .ranking-period-info {
-    font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 500;
-  }
-  /* 조별 랭킹 */
-  .jo-rank-grid { display: flex; flex-direction: column; gap: 1rem; }
-  .jo-rank-card {
-    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
-  }
-  .jo-rank-header {
-    padding: 8px 14px; font-size: 13px; font-weight: 800;
-    color: white; display: flex; align-items: center; gap: 8px;
-  }
-  .jo-rank-total { font-size: 11px; opacity: 0.85; font-weight: 600; }
-
+@media (max-width:500px){
+  .log-item { grid-template-columns:36px 1fr 1fr 60px; }
+  .log-which { display:none; }
+  .display-row { grid-template-columns:90px 1fr; }
+}
 </style>
 </head>
 <body>
 
-<div class="loading-bar" id="loadingBar"></div>
+<h1>🔵 BT Key Picker</h1>
+<p class="subtitle">블루투스 장치에서 버튼을 눌러 키 값을 확인하세요</p>
 
-<!-- 로그인 화면 -->
-<div id="loginScreen">
-
-  <!-- ① 상단: 배경 이미지 + 타이틀 + 성명 입력 오버레이 -->
-  <div class="login-hero-area">
-    <div class="login-hero-content">
-      <div class="login-title-row">
-        <div class="login-icon" id="installIcon" onclick="triggerInstall()" title="앱 설치" style="cursor:pointer;">🏓</div>
-        <div class="login-title">보탁 참석자 조사 시스템</div>
-      </div>
-      <div id="pwSubMsg" style="font-size:0.68rem;color:#ffffff;font-weight:700;letter-spacing:1px;min-height:16px;margin-bottom:4px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.8);"></div>
-      <div class="login-name-wrap">
-        <label class="login-name-label">성명</label>
-        <input type="text" class="login-name-input" id="nameLoginInput"
-          placeholder="홍길동" maxlength="10"
-          onkeydown="if(event.key==='Enter') this.blur()">
-        <label class="login-busoo-label">부수</label>
-        <input type="number" class="login-busoo-input" id="busooInput"
-          placeholder="" min="1" max="8" maxlength="1"
-          onkeydown="if(event.key==='Enter') this.blur()"
-          oninput="this.value=this.value.replace(/[^1-8]/g,'').slice(0,1)">
-        <label class="login-jo-label">조명</label>
-        <input type="text" class="login-jo-input" id="joInput"
-          placeholder="" maxlength="5"
-          onkeydown="if(event.key==='Enter') this.blur()"
-          oninput="checkJoInput(this)">
-      </div>
-    </div>
-  </div>
-
-  <!-- ② 하단: 순수 검정 + 도트 + 키패드 -->
-  <div class="login-pw-area">
-    <div class="pw-dots">
-      <div class="pw-dot" id="pd0"></div><div class="pw-dot" id="pd1"></div>
-      <div class="pw-dot" id="pd2"></div><div class="pw-dot" id="pd3"></div>
-    </div>
-    <div class="pw-sub-label">비밀번호를 입력하세요</div>
-    <div class="login-error" id="loginError"></div>
-    <div class="pw-keypad">
-      <button class="kbtn" onclick="lockKey('1')">1</button>
-      <button class="kbtn" onclick="lockKey('2')">2</button>
-      <button class="kbtn" onclick="lockKey('3')">3</button>
-      <button class="kbtn" onclick="lockKey('4')">4</button>
-      <button class="kbtn" onclick="lockKey('5')">5</button>
-      <button class="kbtn" onclick="lockKey('6')">6</button>
-      <button class="kbtn" onclick="lockKey('7')">7</button>
-      <button class="kbtn" onclick="lockKey('8')">8</button>
-      <button class="kbtn" onclick="lockKey('9')">9</button>
-      <div class="kbtn empty"></div>
-      <button class="kbtn" onclick="lockKey('0')">0</button>
-      <button class="kbtn del" onclick="lockDel()">⌫</button>
-    </div>
-  </div>
-
-  <!-- 하단 캐시 새로고침 + 제작자 -->
-  <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px;">
-    <button onclick="hardRefresh()"
-      style="background:none;border:none;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-family:inherit;padding:4px 6px;border-radius:6px;transition:color .2s;"
-      onmouseenter="this.style.color='#3498db'" onmouseleave="this.style.color='#ffffff'"
-      ontouchstart="this.style.color='#3498db'" ontouchend="this.style.color='#ffffff'">🔄 캐시 새로고침</button>
-    <div style="color:#ffffff;font-size:10px;letter-spacing:.5px;font-weight:700;">Made by yybest</div>
-  </div>
+<!-- 포커스 영역 -->
+<div class="focus-area" id="focusArea" onclick="focusInput()">
+  <input type="text" id="hiddenInput" readonly
+    onfocus="setFocused(true)" onblur="setFocused(false)">
+  <span id="focusLabel">📱 여기를 탭하여 입력 대기 시작</span>
 </div>
 
-<!-- 메인 앱 -->
-<div id="app">
-  <header>
-    <div class="header-left">
-      <h1>🏓 보탁 참석자 현황</h1>
-      <div class="subtitle">(보령탁구동호회)</div>
-    </div>
-    <div class="header-right">
-
-      <div class="sync-dot-wrap">
-        <div class="sync-dot" id="syncDot"></div>
-        <span class="sync-label" id="syncLabel">연결됨</span>
-      </div>
-      <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
-      <button class="hdr-btn" onclick="openRankingModal()" style="background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.7);">🏆 통계</button>
-      <button class="hdr-btn" id="adminModeBtn" onclick="openAdminAuth()" style="background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);">⚙️ 관리자</button>
-      <button class="hdr-btn" onclick="doLogout()">나가기</button>
-    </div>
-  </header>
-
-  <div class="main-layout">
-    <!-- 달력 영역 -->
-    <div>
-      <div class="card">
-        <div class="calendar-header">
-          <button class="nav-btn" id="prevBtn">&#8249;</button>
-          <h2 id="monthTitle"></h2>
-          <button class="nav-btn" id="nextBtn">&#8250;</button>
-        </div>
-        <div class="weekdays">
-          <div class="weekday">일</div><div class="weekday">월</div>
-          <div class="weekday">화</div><div class="weekday">수</div>
-          <div class="weekday">목</div><div class="weekday">금</div>
-          <div class="weekday">토</div>
-        </div>
-        <div class="days-grid" id="daysGrid"></div>
-      </div>
-
-      <!-- 모바일 하단 패널 -->
-      <div class="mobile-day-panel" id="mobileDayPanel">
-        <div class="mdp-header">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <div class="mdp-date" id="mdpDate">날짜를 선택하세요</div>
-            <div id="mdpMemoDisplay" style="font-size:13px;color:var(--primary);font-weight:600;display:none;"></div>
-          </div>
-          <div class="mdp-att-count" id="mdpAttCount" style="display:none;"></div>
-        </div>
-        <div class="mdp-att-grid" id="mdpAttGrid">
-          <div class="mdp-empty">날짜를 선택해 주세요</div>
-        </div>
-        <button class="mdp-attend-btn register" id="mdpAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">
-          ✅ 참석 등록
-        </button>
-        <!-- 메모 (관리자 모드에서만 표시) -->
-        <div class="mdp-memo-row" id="mdpMemoRow" style="display:none;">
-          <span class="mdp-memo-label" style="font-size:13px;">📝</span>
-          <input type="text" class="mdp-memo-input" id="mdpMemoInput" placeholder="일정 메모 (20자)" maxlength="20">
-          <button class="mdp-memo-save" onclick="saveMemo()">저장</button>
-        </div>
-        <!-- 수동등록 폼 (관리자 모드에서만 표시) -->
-        <div class="mdp-manual-form" id="mdpManualForm">
-          <div class="mdp-manual-row">
-            <input type="text" class="mdp-manual-input" id="mdpManualName" placeholder="이름" maxlength="10">
-            <input type="number" class="mdp-manual-busoo" id="mdpManualBusoo" placeholder="부수" min="1" max="8"
-              oninput="this.value=this.value.replace(/[^1-8]/g,'').slice(0,1)">
-            <button class="mdp-manual-submit" onclick="submitManual()">수동등록</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PC 사이드바 -->
-    <div class="sidebar">
-      <div class="card">
-        <div class="panel-header">
-          <h3>📅 참석 현황</h3>
-          <span class="panel-date-badge" id="selectedDateLabel">날짜를 선택하세요</span>
-        </div>
-
-        <!-- 내 참석 등록/취소 버튼 -->
-        <div class="my-attend-section">
-          <button class="my-attend-btn register" id="attendBtn" onclick="toggleAttendance()" disabled>
-            ✅ 참석 등록
-          </button>
-        </div>
-
-        <!-- 참석자 목록 -->
-        <div class="att-list" id="attList">
-          <div class="att-empty">
-            <span class="att-empty-icon">📅</span>
-            날짜를 선택하면<br>참석자를 볼 수 있어요
-          </div>
-        </div>
-      </div>
-
-      <!-- 통계 카드 -->
-      <div class="card">
-        <div class="panel-header">
-          <h3>📊 월간 통계</h3>
-        </div>
-        <div class="stats-section">
-          <div class="stats-grid">
-            <div class="stat-box">
-              <div class="stat-num" id="statMyCount">0</div>
-              <div class="stat-label">내 참석 횟수</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num" id="statTotalDays">0</div>
-              <div class="stat-label">이번 달 참석일</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num" id="statAvgAtt">0</div>
-              <div class="stat-label">평균 참석자 수</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num" id="statMaxAtt">0</div>
-              <div class="stat-label">최대 참석자 수</div>
-            </div>
-          </div>
-        </div>
-      </div>
+<!-- 메인 디스플레이 -->
+<div class="display-box">
+  <div class="display-row">
+    <span class="display-label">Key</span>
+    <div class="display-value" id="dispKey"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">Code</span>
+    <div class="display-value" id="dispCode"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">keyCode</span>
+    <div class="display-value" id="dispKeyCode"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">which</span>
+    <div class="display-value" id="dispWhich"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">charCode</span>
+    <div class="display-value" id="dispChar"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">type</span>
+    <div class="display-value" id="dispType"><span style="color:var(--muted)">—</span></div>
+  </div>
+  <div class="display-row">
+    <span class="display-label">매핑 일치</span>
+    <div class="display-value" id="dispMatch">
+      <span class="match-badge wait">대기 중</span>
     </div>
   </div>
 </div>
 
-<!-- 관리자 인증 모달 -->
-<div class="modal-overlay" id="adminAuthModal">
-  <div class="modal-box" style="text-align:center;">
-    <div class="modal-title" id="adminAuthTitle">⚙️ 관리자 인증</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;" id="adminAuthSub">관리자 비밀번호를 입력하세요</div>
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:12px;">
-      <div class="pw-dot" id="apd0"></div><div class="pw-dot" id="apd1"></div>
-      <div class="pw-dot" id="apd2"></div><div class="pw-dot" id="apd3"></div>
-    </div>
-    <div style="font-size:11px;color:#e74c3c;min-height:16px;margin-bottom:10px;" id="adminAuthErr"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto;">
-      <button class="kbtn" onclick="adminKey('1')">1</button>
-      <button class="kbtn" onclick="adminKey('2')">2</button>
-      <button class="kbtn" onclick="adminKey('3')">3</button>
-      <button class="kbtn" onclick="adminKey('4')">4</button>
-      <button class="kbtn" onclick="adminKey('5')">5</button>
-      <button class="kbtn" onclick="adminKey('6')">6</button>
-      <button class="kbtn" onclick="adminKey('7')">7</button>
-      <button class="kbtn" onclick="adminKey('8')">8</button>
-      <button class="kbtn" onclick="adminKey('9')">9</button>
-      <div class="kbtn empty"></div>
-      <button class="kbtn" onclick="adminKey('0')">0</button>
-      <button class="kbtn del" onclick="adminKeyDel()">⌫</button>
-    </div>
-    <button class="modal-cancel" onclick="closeAdminAuth()" style="margin-top:14px;width:100%;padding:10px;">취소</button>
-  </div>
+<!-- 필터 -->
+<div class="filter-row">
+  <span style="font-size:0.72rem;color:var(--muted);align-self:center;font-weight:700;">이벤트 타입:</span>
+  <button class="chip active" onclick="toggleFilter('keydown',this)">keydown</button>
+  <button class="chip active" onclick="toggleFilter('keyup',this)">keyup</button>
+  <button class="chip" onclick="toggleFilter('keypress',this)">keypress</button>
+  <button class="chip" onclick="toggleFilter('input',this)">input</button>
 </div>
 
-<!-- 비밀번호 변경 모달 -->
-<div class="modal-overlay" id="pwModal">
-  <div class="modal-box">
-    <div class="modal-title">🔑 비밀번호 변경</div>
-    <div id="pwCurrentRow">
-      <label class="modal-label">현재 비밀번호</label>
-      <input type="password" class="modal-input" id="pwCurrent" placeholder="현재 비밀번호 입력">
-    </div>
-    <label class="modal-label">새 비밀번호</label>
-    <input type="password" class="modal-input" id="pwNew" placeholder="새 비밀번호 입력">
-    <label class="modal-label">새 비밀번호 확인</label>
-    <input type="password" class="modal-input" id="pwConfirm" placeholder="새 비밀번호 다시 입력">
-    <div class="modal-error" id="pwError"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closePwModal()">취소</button>
-      <button class="modal-confirm" onclick="changePassword()">변경하기</button>
+<!-- 로그 -->
+<div class="log-box">
+  <div class="log-header">
+    <span>📋 이벤트 로그 <span id="logCount" style="color:var(--accent)">0</span>개</span>
+    <button class="log-clear" onclick="clearLog()">전체 삭제</button>
+  </div>
+  <div class="log-list" id="logList">
+    <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.8rem;">
+      버튼을 누르면 여기에 기록됩니다
     </div>
   </div>
 </div>
 
-<!-- 랭킹/통계 모달 -->
-<div class="ranking-modal-overlay" id="rankingModal">
-  <div class="ranking-modal-box">
-    <div class="ranking-modal-title">🏆 참석자 랭킹</div>
-
-    <!-- 기간 탭 -->
-    <div class="ranking-period-tabs">
-      <button class="rp-tab active" onclick="setRankPeriod('month', this)">📅 월간</button>
-      <button class="rp-tab" onclick="setRankPeriod('half', this)">📆 반기</button>
-      <button class="rp-tab" onclick="setRankPeriod('year', this)">🗓️ 연간</button>
-    </div>
-
-    <!-- 세부 기간 선택기 -->
-    <div id="rankDetailSelector" style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
-      <!-- 월간: 연도+월 선택 -->
-      <div id="rankMonthSel" style="display:flex;align-items:center;gap:6px;">
-        <select id="rankSelYear" onchange="renderRanking()" style="padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;"></select>
-        <select id="rankSelMonth" onchange="renderRanking()" style="padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;">
-          <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
-          <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
-          <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
-          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-        </select>
-      </div>
-      <!-- 반기: 연도+상/하반기 선택 -->
-      <div id="rankHalfSel" style="display:none;align-items:center;gap:6px;">
-        <select id="rankSelHalfYear" onchange="renderRanking()" style="padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;"></select>
-        <select id="rankSelHalf" onchange="renderRanking()" style="padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;">
-          <option value="1">상반기 (1~6월)</option>
-          <option value="2">하반기 (7~12월)</option>
-        </select>
-      </div>
-      <!-- 연간: 연도 선택 -->
-      <div id="rankYearSel" style="display:none;align-items:center;gap:6px;">
-        <select id="rankSelYearOnly" onchange="renderRanking()" style="padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;"></select>
-      </div>
-    </div>
-
-    <!-- 뷰 탭 -->
-    <div class="ranking-view-tabs">
-      <button class="rv-tab active" onclick="setRankView('personal', this)">👤 개인 랭킹</button>
-      <button class="rv-tab" onclick="setRankView('jo', this)">👥 조별 랭킹</button>
-    </div>
-
-    <div class="ranking-period-info" id="rankPeriodInfo"></div>
-
-    <!-- 랭킹 내용 -->
-    <div class="ranking-table-wrap" id="rankingContent">
-      <div class="ranking-empty">데이터를 불러오는 중...</div>
-    </div>
-
-    <button class="ranking-close-btn" onclick="closeRankingModal()">닫기</button>
-  </div>
+<!-- 키보드 매핑 참조표 -->
+<div class="map-box">
+  <div class="map-header">⌨️ 주요 키 매핑 참조표 (클릭하면 강조)</div>
+  <div class="map-grid" id="mapGrid"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // ── Firebase 설정 (기존 reservation-928c2 프로젝트 사용) ──
-  const firebaseConfig = {
-    apiKey: "AIzaSyCitGkZcA9rop79BtXJzTBFeez05EYhDoM",
-    authDomain: "reservation-928c2.firebaseapp.com",
-    databaseURL: "https://reservation-928c2-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "reservation-928c2",
-    storageBucket: "reservation-928c2.firebasestorage.app",
-    messagingSenderId: "744951363022",
-    appId: "1:744951363022:web:5cd0645879e349c5ece79f"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // ── 상태 ──
-  let currentUser = null;
-  let currentBusoo = 1; // 현재 사용자 부수
-  let currentJo = '';    // 현재 사용자 조명
-  let attendanceData = {};
-  let currentDate = new Date();
-  let selectedDate = null;
-  let currentPassword = '6986';
-  const ADMIN_PW = '5689';
-  let _lockBuf = '';
-  let attPage = 0;
-  let isAdminMode = false;  // 관리자 모드 여부
-  let memoData = {};           // { 'YYYY-MM-DD': '메모내용' }
-  let _adminSelectedName = null; // 관리자가 선택한 참석자          // 참석자 목록 현재 페이지
-  const ATT_PAGE_SIZE = 20; // 페이지당 표시 수
-
-  const LOCAL_KEY = 'botak_user_name';
-  const LOCAL_BUSOO_KEY = 'botak_user_busoo';
-  const LOCAL_JO_KEY = 'botak_user_jo';
-  const isMobile = () => window.innerWidth <= 768;
-
-  // ── 유틸 ──
-  function setLoading(on) {
-    const b = document.getElementById('loadingBar');
-    b.style.width = on ? '70%' : '100%';
-    if (!on) setTimeout(() => b.style.width = '0%', 300);
-  }
-
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show' + (type ? ' ' + type : '');
-    setTimeout(() => t.className = 'toast', 2800);
-  }
-
-  function formatDateKr(dateKey) {
-    if (!dateKey) return '';
-    const [y, m, d] = dateKey.split('-');
-    return `${parseInt(m)}월 ${parseInt(d)}일`;
-  }
-
-  // ── 해당 날짜가 그 달의 4번째 금요일인지 판별 ──
-  function isFourthFriday(dateKey) {
-    if (!dateKey) return false;
-    const d = new Date(dateKey);
-    if (d.getMonth() === 11) return false; // 12월 제외
-    if (d.getDay() !== 5) return false; // 금요일 아니면 false
-    // 같은 달 금요일 목록에서 4번째인지
-    const y = d.getFullYear(), m = d.getMonth();
-    let count = 0;
-    for (let day = 1; day <= d.getDate(); day++) {
-      if (new Date(y, m, day).getDay() === 5) count++;
-    }
-    return count === 4;
-  }
-
-  // ── 해당 dateKey의 실제 메모 반환 (4번째 금요일은 자동 월례대회) ──
-  function getMemo(dateKey) {
-    if (memoData[dateKey]) return memoData[dateKey];
-    if (isFourthFriday(dateKey)) return '월례대회';
-    return '';
-  }
-
-  // ── Firebase에서 비번 로드 ──
-  (async function loadPassword() {
-    try {
-      const snap = await get(ref(db, 'botak_config/password'));
-      if (snap.exists()) currentPassword = snap.val();
-    } catch(e) { /* 기본값 사용 */ }
-  })();
-
-  // ── 로그인 화면: 저장된 이름/부수 자동 입력 ──
-  (function initLoginHint() {
-    const saved = localStorage.getItem(LOCAL_KEY);
-    if (saved) document.getElementById('nameLoginInput').value = saved;
-    const savedBusoo = localStorage.getItem(LOCAL_BUSOO_KEY);
-    if (savedBusoo) document.getElementById('busooInput').value = savedBusoo;
-    const savedJo = localStorage.getItem(LOCAL_JO_KEY);
-    if (savedJo) document.getElementById('joInput').value = savedJo;
-  })();
-
-  // ── 키패드 도트 업데이트 ──
-  function updateDots() {
-    for (let i = 0; i < 4; i++) {
-      const d = document.getElementById('pd' + i);
-      if (!d) continue;
-      d.classList.remove('filled', 'error');
-      if (i < _lockBuf.length) d.classList.add('filled');
-    }
-  }
-
-  function shakeError() {
-    const kp = document.querySelector('.pw-keypad');
-    const dots = document.querySelector('.pw-dots');
-    [kp, dots].forEach(el => {
-      if (!el) return;
-      el.style.animation = 'none';
-      requestAnimationFrame(() => { el.style.animation = 'shake .35s ease'; });
-    });
-    for (let i = 0; i < 4; i++) {
-      const d = document.getElementById('pd' + i);
-      if (d) { d.classList.remove('filled'); d.classList.add('error'); }
-    }
-    setTimeout(() => {
-      for (let i = 0; i < 4; i++) {
-        const d = document.getElementById('pd' + i);
-        if (d) d.classList.remove('error');
-      }
-    }, 600);
-  }
-
-  window.lockKey = function(n) {
-    if (_lockBuf.length >= 4) return;
-    _lockBuf += n;
-    updateDots();
-    document.getElementById('loginError').textContent = '';
-    if (_lockBuf.length === 4) {
-      setTimeout(() => checkAndLogin(), 120);
-    }
-  };
-
-  window.lockDel = function() {
-    if (!_lockBuf.length) return;
-    _lockBuf = _lockBuf.slice(0, -1);
-    updateDots();
-  };
-
-  // ── 조명 입력 검사 ──
-  window.checkJoInput = function(el) {
-    if (el.value.includes('조')) {
-      el.value = el.value.replace(/조/g, '');
-      document.getElementById('loginError').textContent = "'조'는 빼고 입력해주세요 (예: 1, A, 나)";
-      el.classList.add('error');
-      setTimeout(() => {
-        el.classList.remove('error');
-        document.getElementById('loginError').textContent = '';
-      }, 2000);
-    }
-  };
-
-  function checkAndLogin() {
-    const name = document.getElementById('nameLoginInput').value.trim();
-    const nameInp = document.getElementById('nameLoginInput');
-    const busoo = document.getElementById('busooInput').value.trim();
-    const busooInp = document.getElementById('busooInput');
-    const errEl = document.getElementById('loginError');
-    if (!name) {
-      errEl.textContent = '성명을 먼저 입력해주세요';
-      nameInp.classList.add('error');
-      setTimeout(() => nameInp.classList.remove('error'), 400);
-      nameInp.focus();
-      _lockBuf = ''; updateDots();
-      return;
-    }
-    const busooNum = parseInt(busoo);
-    if (!busoo || isNaN(busooNum) || busooNum < 1 || busooNum > 8) {
-      errEl.textContent = '부수를 1~8 사이로 입력해주세요';
-      busooInp.classList.add('error');
-      setTimeout(() => busooInp.classList.remove('error'), 400);
-      busooInp.focus();
-      _lockBuf = ''; updateDots();
-      return;
-    }
-    const _isAdmin = (_lockBuf === ADMIN_PW);
-    if (_lockBuf === currentPassword || _isAdmin) {
-      const jo = document.getElementById('joInput').value.trim();
-      localStorage.setItem(LOCAL_KEY, name);
-      localStorage.setItem(LOCAL_BUSOO_KEY, busoo);
-      if (jo) localStorage.setItem(LOCAL_JO_KEY, jo);
-      currentUser = name;
-      currentBusoo = parseInt(busoo) || 1;
-      currentJo = document.getElementById('joInput').value.trim();
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      const _hnEl = document.getElementById('headerUserName'); if (_hnEl) _hnEl.textContent = name;
-      _lockBuf = '';
-      startListening();
-      if (_isAdmin) { setTimeout(() => openPwModal(true), 400); }
-    } else {
-      errEl.textContent = '비밀번호가 틀렸습니다';
-      shakeError();
-      _lockBuf = '';
-      setTimeout(() => updateDots(), 600);
-    }
-  }
-
-  window.doLogout = function() {
-    window.close();
-    setTimeout(function() {
-      history.go(-(history.length));
-    }, 200);
-  };
-
-  // ── 비밀번호 변경 ──
-  window.openPwModal = function(adminMode) {
-    ['pwCurrent','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('pwError').textContent = '';
-    // 관리자 로그인 시 현재 비번 입력란 숨김
-    const curRow = document.getElementById('pwCurrentRow');
-    if (curRow) curRow.style.display = adminMode ? 'none' : '';
-    document.getElementById('pwModal').dataset.adminMode = adminMode ? '1' : '';
-    document.getElementById('pwModal').classList.add('show');
-  };
-  window.closePwModal = function() { document.getElementById('pwModal').classList.remove('show'); };
-  window.changePassword = async function() {
-    const cur = document.getElementById('pwCurrent').value;
-    const nw = document.getElementById('pwNew').value;
-    const cf = document.getElementById('pwConfirm').value;
-    const errEl = document.getElementById('pwError');
-    const isAdminPwModal = document.getElementById('pwModal').dataset.adminMode === '1';
-    errEl.textContent = '';
-    if (!isAdminPwModal && cur !== currentPassword && cur !== ADMIN_PW) { errEl.textContent = '현재 비밀번호가 틀렸어요'; return; }
-    if (!nw) { errEl.textContent = '새 비밀번호를 입력해주세요'; return; }
-    if (nw === ADMIN_PW) { errEl.textContent = '해당 번호는 사용할 수 없어요'; return; }
-    if (nw !== cf) { errEl.textContent = '새 비밀번호가 일치하지 않아요'; return; }
-    try {
-      await set(ref(db, 'botak_config/password'), nw);
-      currentPassword = nw;
-      closePwModal();
-      showToast('비밀번호가 변경되었어요! ✓', 'success');
-    } catch(e) { errEl.textContent = '저장 실패: ' + e.message; }
-  };
-
-  // ── Firebase 리스너 ──
-  function startListening() {
-    onValue(ref(db, 'botak_attendance'), (snap) => {
-      attendanceData = snap.val() || {};
-      renderCalendar();
-      if (selectedDate) { renderSidebar(); renderMobilePanel(); }
-      updateStats();
-      document.getElementById('syncDot').className = 'sync-dot';
-      document.getElementById('syncLabel').textContent = '연결됨';
-    }, () => {
-      document.getElementById('syncDot').className = 'sync-dot off';
-      document.getElementById('syncLabel').textContent = '오류';
-    });
-    // 메모 데이터 리스닝
-    onValue(ref(db, 'botak_memo'), (snap) => {
-      memoData = snap.val() || {};
-      renderCalendar();
-      if (selectedDate) renderMobilePanel();
-    });
-  }
-
-  // ── 달력 렌더 ──
-  function renderCalendar() {
-    const y = currentDate.getFullYear(), m = currentDate.getMonth();
-    document.getElementById('monthTitle').textContent = `${y}년 ${m+1}월`;
-    const firstDay = new Date(y, m, 1).getDay();
-    const daysInMonth = new Date(y, m+1, 0).getDate();
-    const daysInPrev = new Date(y, m, 0).getDate();
-    const today = new Date();
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-    const grid = document.getElementById('daysGrid');
-    grid.innerHTML = '';
-    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-
-    for (let i = 0; i < totalCells; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'day-cell';
-      let day, isOther = false;
-      if (i < firstDay) { day = daysInPrev - firstDay + i + 1; isOther = true; }
-      else if (i >= firstDay + daysInMonth) { day = i - firstDay - daysInMonth + 1; isOther = true; }
-      else { day = i - firstDay + 1; }
-      const key = isOther ? null : `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-
-      if (isOther) cell.classList.add('other-month');
-      if (key === todayKey) cell.classList.add('today');
-      if (key && selectedDate === key) cell.classList.add('selected');
-
-      const numEl = document.createElement('div');
-      numEl.className = 'day-num';
-      numEl.textContent = day;
-      cell.appendChild(numEl);
-
-      // 참석 인원수 + 메모점 표시
-      if (key && (attendanceData[key] || getMemo(key))) {
-        const bottom = document.createElement('div');
-        bottom.className = 'day-cell-bottom';
-        if (getMemo(key)) {
-          const dot = document.createElement('span');
-          dot.className = 'day-memo-dot';
-          bottom.appendChild(dot);
-        }
-        if (attendanceData[key]) {
-          const names = Object.keys(attendanceData[key]);
-          if (names.length > 0) {
-            const badge = document.createElement('div');
-            badge.className = 'day-att-num';
-            badge.textContent = `${names.length}명`;
-            bottom.appendChild(badge);
-          }
-        }
-        if (bottom.children.length > 0) cell.appendChild(bottom);
-      }
-
-      if (!isOther) cell.addEventListener('click', () => selectDate(key, y, m, day));
-      grid.appendChild(cell);
-    }
-  }
-
-  // ── 날짜 선택 ──
-  function selectDate(key, y, m, day) {
-    selectedDate = key;
-    attPage = 0;
-    document.getElementById('selectedDateLabel').textContent = formatDateKr(key);
-    renderCalendar();
-    renderSidebar();
-    renderMobilePanel();
-    if (isMobile()) {
-      setTimeout(() => document.getElementById('mobileDayPanel').scrollIntoView({behavior:'smooth',block:'nearest'}), 50);
-    }
-  }
-
-  // ── 사이드바 렌더 ──
-  function renderSidebar() {
-    if (!selectedDate) return;
-    const btn = document.getElementById('attendBtn');
-    const attList = document.getElementById('attList');
-    btn.disabled = false;
-    const names = selectedDate && attendanceData[selectedDate] ? Object.keys(attendanceData[selectedDate]) : [];
-    const isRegistered = names.includes(currentUser);
-
-    if (isRegistered) {
-      btn.className = 'my-attend-btn cancel';
-      btn.innerHTML = '❌ 참석 취소';
-    } else {
-      btn.className = 'my-attend-btn register';
-      btn.innerHTML = '✅ 참석 등록';
-    }
-
-    if (names.length === 0) {
-      attList.innerHTML = `<div class="att-empty">아직 등록된 참석자가 없어요</div>`;
-      return;
-    }
-
-    renderAttPage(names, attPage);
-  }
-
-  function renderAttPage(names, page) {
-    const attList = document.getElementById('attList');
-    const totalPages = Math.ceil(names.length / ATT_PAGE_SIZE);
-    const start = page * ATT_PAGE_SIZE;
-    const slice = names.slice(start, start + ATT_PAGE_SIZE);
-
-    let html = `<div class="att-count-badge">총 ${names.length}명 참석</div>`;
-    html += `<div class="att-name-grid">`;
-    slice.forEach(name => {
-      const isMine = (name === currentUser);
-      html += `<div class="att-name-chip ${isMine ? 'mine' : ''}" data-name="${name}">${name}</div>`;
-    });
-    html += `</div>`;
-    if (totalPages > 1) {
-      html += `<div class="att-paging">
-        <button class="att-page-btn" id="attPrevBtn" ${page === 0 ? 'disabled' : ''} onclick="changeAttPage(-1)">◀</button>
-        <span class="att-page-info">${page + 1} / ${totalPages}</span>
-        <button class="att-page-btn" id="attNextBtn" ${page >= totalPages - 1 ? 'disabled' : ''} onclick="changeAttPage(1)">▶</button>
-      </div>`;
-    }
-    html += `<div class="long-press-hint">이름을 길게 누르면 등록 취소</div>`;
-    attList.innerHTML = html;
-
-    attList.querySelectorAll('.att-name-chip').forEach(chip => {
-      setupLongPress(chip, () => {
-        const name = chip.dataset.name;
-        openConfirm(
-          `"${name}" 님의 ${formatDateKr(selectedDate)} 참석을 취소할까요?`,
-          async () => { await removeAttendance(selectedDate, name); }
-        );
-      });
-    });
-  }
-
-  window.changeAttPage = function(dir) {
-    const dayData = selectedDate && attendanceData[selectedDate] ? attendanceData[selectedDate] : {};
-    const sorted = Object.entries(dayData)
-      .sort((a, b) => (a[1].registeredAt||0) - (b[1].registeredAt||0));
-    const totalPages = Math.ceil(sorted.length / ATT_PAGE_SIZE);
-    attPage = Math.max(0, Math.min(attPage + dir, totalPages - 1));
-    // PC와 모바일 모두 재렌더
-    if (window.innerWidth <= 768) {
-      renderMobilePanel();
-    } else {
-      const names = sorted.map(([n]) => n);
-      renderAttPage(names, attPage);
-    }
-  };
-
-  // ── 모바일 패널 렌더 ──
-  function renderMobilePanel() {
-    if (!selectedDate) return;
-    const dateEl = document.getElementById('mdpDate');
-    const attGrid = document.getElementById('mdpAttGrid');
-    const attCountEl = document.getElementById('mdpAttCount');
-    const btn = document.getElementById('mdpAttendBtn');
-
-    dateEl.textContent = formatDateKr(selectedDate);
-    const names = attendanceData[selectedDate] ? Object.keys(attendanceData[selectedDate]) : [];
-    const isRegistered = names.includes(currentUser);
-
-    // 하단 참석 버튼 숨기기 (헤더로 이동)
-    btn.style.display = 'none';
-
-    // 메모 표시 (날짜 아래 항상)
-    const memoDisplay = document.getElementById('mdpMemoDisplay');
-    if (memoDisplay) {
-      const memoText = getMemo(selectedDate);
-      if (memoText) {
-        memoDisplay.textContent = '📌 ' + memoText;
-        memoDisplay.style.display = '';
-      } else {
-        memoDisplay.style.display = 'none';
-      }
-    }
-    // 메모 입력 영역: 관리자 모드면 표시
-    const memoRow = document.getElementById('mdpMemoRow');
-    const memoInput = document.getElementById('mdpMemoInput');
-    if (memoRow) {
-      memoRow.style.display = isAdminMode ? 'flex' : 'none';
-      if (memoInput) memoInput.value = memoData[selectedDate] || (isFourthFriday(selectedDate) ? '월례대회' : '');
-    }
-    // 수동등록 폼 관리자 모드에 따라 표시/숨김
-    const manualForm = document.getElementById('mdpManualForm');
-    if (manualForm) {
-      manualForm.style.display = isAdminMode ? 'flex' : 'none';
-    }
-
-    // 헤더 참석 버튼 동기화
-    const hdrBtn = document.getElementById('hdrAttendBtn');
-    if (hdrBtn) {
-      hdrBtn.style.display = 'inline-block';
-      if (isRegistered) {
-        hdrBtn.className = 'hdr-btn hdr-attend-btn cancel';
-        hdrBtn.innerHTML = '❌ 참석 취소';
-      } else {
-        hdrBtn.className = 'hdr-btn hdr-attend-btn register';
-        hdrBtn.innerHTML = '✅ 참석 등록';
-      }
-    }
-
-    // 참석자 수 뱃지
-    if (names.length > 0) {
-      attCountEl.style.display = '';
-      attCountEl.textContent = `${names.length}명`;
-    } else {
-      attCountEl.style.display = 'none';
-    }
-
-    // 부수별 행으로 표시 (등록순 정렬)
-    const dayData = attendanceData[selectedDate] || {};
-    const sorted = Object.entries(dayData)
-      .sort((a, b) => (a[1].registeredAt || 0) - (b[1].registeredAt || 0))
-      .map(([name, val]) => ({ name, busoo: val.busoo || 0, jo: val.jo || '', registeredAt: val.registeredAt || 0 }));
-
-    if (sorted.length === 0) {
-      attGrid.innerHTML = '<div class="mdp-empty">아직 등록된 참석자가 없어요</div>';
-      attGrid.style.cssText = '';
-    } else {
-      attGrid.innerHTML = '';
-      attGrid.style.cssText = 'width:100%;';
-
-      // ── 월례대회 모드: 조별 정렬 ──
-      const isTournament = getMemo(selectedDate).includes('월례대회');
-      if (isTournament) {
-        // 조 목록 추출 (등록된 참석자 기준, 조명 있는 사람만)
-        const joSet = [...new Set(sorted.filter(m => m.jo).map(m => m.jo))].sort();
-        // 조 없는 사람도 처리
-        const noJo = sorted.filter(m => !m.jo);
-
-        // 조별 행 생성
-        // 조별 가독성 좋은 색상 (최대 10개 조)
-        const joColors = ['#6b46c1','#c05621','#2b6cb0','#b7791f'];
-        joSet.forEach((joName, joIdx) => {
-          const members = sorted
-            .filter(m => m.jo === joName)
-            .sort((a, b) => (a.busoo || 99) - (b.busoo || 99)); // 부수 오름차순
-          if (members.length === 0) return;
-
-          const row = document.createElement('div');
-          row.className = 'busoo-row';
-          const label = document.createElement('div');
-          label.className = 'busoo-label';
-          label.style.background = joColors[joIdx % joColors.length];
-          label.textContent = `${joName}`;
-          row.appendChild(label);
-          const namesWrap = document.createElement('div');
-          namesWrap.className = 'busoo-names';
-          members.forEach(({ name, busoo, registeredAt }) => {
-            const isMine = (name === currentUser);
-            const chip = document.createElement('div');
-            chip.className = `att-name-chip ${isMine ? 'mine' : ''}`;
-            chip.dataset.name = name;
-            chip.textContent = busoo ? `${busoo}${name}` : name;
-            chip.addEventListener('click', () => {
-              if (!isAdminMode) return;
-              document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
-              _adminSelectedName = (_adminSelectedName === name) ? null : name;
-              if (_adminSelectedName) chip.style.outline = '2px solid #ef4444';
-              const hb = document.getElementById('hdrAttendBtn');
-              if (hb) hb.innerHTML = _adminSelectedName ? `❌ ${_adminSelectedName} 취소` : '❌ 참석 취소';
-            });
-            setupLongPress(chip, () => {
-              const dt = registeredAt ? new Date(registeredAt) : null;
-              const msg = dt ? `등록: ${dt.getMonth()+1}.${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '등록일시 없음';
-              showDateTooltip(chip, msg);
-            });
-            namesWrap.appendChild(chip);
-          });
-          row.appendChild(namesWrap);
-          attGrid.appendChild(row);
-        });
-
-        // 조 미지정자
-        if (noJo.length > 0) {
-          const row = document.createElement('div');
-          row.className = 'busoo-row';
-          const label = document.createElement('div');
-          label.className = 'busoo-label';
-          label.style.background = '#94a3b8';
-          label.textContent = '미배정';
-          row.appendChild(label);
-          const namesWrap = document.createElement('div');
-          namesWrap.className = 'busoo-names';
-          noJo.sort((a,b)=>(a.busoo||99)-(b.busoo||99)).forEach(({ name, busoo, registeredAt }) => {
-            const isMine = (name === currentUser);
-            const chip = document.createElement('div');
-            chip.className = `att-name-chip ${isMine ? 'mine' : ''}`;
-            chip.dataset.name = name;
-            chip.textContent = busoo ? `${busoo}${name}` : name;
-            setupLongPress(chip, () => {
-              const dt = registeredAt ? new Date(registeredAt) : null;
-              const msg = dt ? `등록: ${dt.getMonth()+1}.${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '등록일시 없음';
-              showDateTooltip(chip, msg);
-            });
-            namesWrap.appendChild(chip);
-          });
-          row.appendChild(namesWrap);
-          attGrid.appendChild(row);
-        }
-
-        return; // 월례대회 모드 완료
-      }
-
-      // ── 일반 모드: 부수별 정렬 ──
-      // 부수 미지정 참석자 먼저 별도 행으로 표시
-      const unassigned = sorted.filter(m => !m.busoo || m.busoo < 1 || m.busoo > 8);
-      if (unassigned.length > 0) {
-        const row = document.createElement('div');
-        row.className = 'busoo-row';
-        const label = document.createElement('div');
-        label.className = 'busoo-label';
-        label.style.background = '#94a3b8';
-        label.textContent = '?부';
-        row.appendChild(label);
-        const namesWrap = document.createElement('div');
-        namesWrap.className = 'busoo-names';
-        unassigned.forEach(({ name, registeredAt }) => {
-          const isMine = (name === currentUser);
-          const chip = document.createElement('div');
-          chip.className = `att-name-chip ${isMine ? 'mine' : ''}`;
-          chip.dataset.name = name;
-          chip.textContent = name;
-          chip.addEventListener('click', () => {
-            if (!isAdminMode) return;
-            document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
-            if (_adminSelectedName === name) {
-              _adminSelectedName = null;
-            } else {
-              _adminSelectedName = name;
-              chip.style.outline = '2px solid #ef4444';
-            }
-            const hb = document.getElementById('hdrAttendBtn');
-            if (hb) hb.innerHTML = _adminSelectedName ? `❌ ${_adminSelectedName} 취소` : '❌ 참석 취소';
-          });
-          setupLongPress(chip, () => {
-            const dt = registeredAt ? new Date(registeredAt) : null;
-            const msg = dt
-              ? `등록: ${dt.getMonth()+1}.${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
-              : '등록일시 없음';
-            showDateTooltip(chip, msg);
-          });
-          namesWrap.appendChild(chip);
-        });
-        row.appendChild(namesWrap);
-        attGrid.appendChild(row);
-      }
-
-      // 1~8부 행 생성
-      for (let b = 1; b <= 8; b++) {
-        const members = sorted.filter(m => m.busoo === b)
-          .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-        if (members.length === 0) continue; // 해당 부수 없으면 행 생략
-        const row = document.createElement('div');
-        row.className = 'busoo-row';
-        const label = document.createElement('div');
-        label.className = 'busoo-label';
-        label.textContent = `${b}부`;
-        row.appendChild(label);
-        const namesWrap = document.createElement('div');
-        namesWrap.className = 'busoo-names';
-        members.forEach(({ name, registeredAt }) => {
-          const isMine = (name === currentUser);
-          const chip = document.createElement('div');
-          chip.className = `att-name-chip ${isMine ? 'mine' : ''}`;
-          chip.dataset.name = name;
-          chip.textContent = name;
-        // 관리자 모드: 짧게 탭으로 선택 표시
-        chip.addEventListener('click', () => {
-          if (!isAdminMode) return;
-          document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
-          if (_adminSelectedName === name) {
-            _adminSelectedName = null;
-          } else {
-            _adminSelectedName = name;
-            chip.style.outline = '2px solid #ef4444';
-          }
-          // 헤더 버튼 텍스트 업데이트
-          const hb = document.getElementById('hdrAttendBtn');
-          if (hb) {
-            hb.innerHTML = _adminSelectedName ? `❌ ${_adminSelectedName} 취소` : '❌ 참석 취소';
-          }
-        });
-        // 길게 누르면 등록 일시 표시
-        setupLongPress(chip, () => {
-          const dt = registeredAt ? new Date(registeredAt) : null;
-          const msg = dt
-            ? `등록: ${dt.getMonth()+1}.${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
-            : '등록일시 없음';
-          showDateTooltip(chip, msg);
-        });
-          namesWrap.appendChild(chip);
-        });
-        row.appendChild(namesWrap);
-        attGrid.appendChild(row);
-      }
-    }
-  }
-
-  // ── 메모 저장 ──
-  window.saveMemo = async function() {
-    if (!selectedDate) return;
-    const val = document.getElementById('mdpMemoInput').value.trim();
-    try {
-      if (val) {
-        await set(ref(db, `botak_memo/${selectedDate}`), val);
-        showToast('메모가 저장되었어요 📝', 'success');
-      } else {
-        await remove(ref(db, `botak_memo/${selectedDate}`));
-        showToast('메모가 삭제되었어요');
-      }
-    } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
-  };
-
-  // ── 수동등록 폼 토글 ──
-  window.toggleManualForm = function() {
-    const form = document.getElementById('mdpManualForm');
-    if (form) form.classList.toggle('show');
-  };
-
-  // ── 수동 참석 등록 ──
-  window.submitManual = async function() {
-    if (!selectedDate) return;
-    const name = document.getElementById('mdpManualName').value.trim();
-    const busooVal = document.getElementById('mdpManualBusoo').value.trim();
-    const busooNum = parseInt(busooVal);
-    if (!name) { showToast('이름을 입력해주세요', 'error'); return; }
-    if (!busooVal || isNaN(busooNum) || busooNum < 1 || busooNum > 8) {
-      showToast('부수를 1~8로 입력해주세요', 'error'); return;
-    }
-    try {
-      await set(ref(db, `botak_attendance/${selectedDate}/${name}`), {
-        name, busoo: busooNum, registeredAt: Date.now()
-      });
-      document.getElementById('mdpManualName').value = '';
-      document.getElementById('mdpManualBusoo').value = '';
-      showToast(`${name} (${busooNum}부) 등록 완료`, 'success');
-    } catch(e) { showToast('등록 실패: ' + e.message, 'error'); }
-  };
-
-  // ── 툴팁 표시 ──
-  function showDateTooltip(el, msg) {
-    document.querySelectorAll('.att-chip-tooltip').forEach(t => t.remove());
-    const tip = document.createElement('div');
-    tip.className = 'att-chip-tooltip';
-    tip.textContent = msg;
-    document.body.appendChild(tip);
-    const r = el.getBoundingClientRect();
-    tip.style.left = (r.left + r.width/2) + 'px';
-    tip.style.top = (r.top + window.scrollY) + 'px';
-    setTimeout(() => tip.remove(), 2500);
-  }
-
-  // ── 참석 등록/취소 토글 ──
-  window.toggleAttendance = async function() {
-    if (!selectedDate) return;
-    const names = attendanceData[selectedDate] ? Object.keys(attendanceData[selectedDate]) : [];
-    const isRegistered = names.includes(currentUser);
-    if (isRegistered) {
-      openConfirm(
-        `${formatDateKr(selectedDate)} 참석을 취소할까요?`,
-        async () => { await removeAttendance(selectedDate, currentUser); }
-      );
-    } else {
-      await addAttendance(selectedDate, currentUser);
-    }
-  };
-
-  window.toggleAttendanceMobile = async function() {
-    if (!selectedDate) return;
-    const names = attendanceData[selectedDate] ? Object.keys(attendanceData[selectedDate]) : [];
-    // 관리자 모드: chip 탭으로 선택된 이름 취소
-    if (isAdminMode && _adminSelectedName) {
-      await removeAttendance(selectedDate, _adminSelectedName);
-      _adminSelectedName = null;
-      return;
-    }
-    const isRegistered = names.includes(currentUser);
-    if (isRegistered) {
-      openConfirm(
-        `${formatDateKr(selectedDate)} 참석을 취소할까요?`,
-        async () => { await removeAttendance(selectedDate, currentUser); }
-      );
-    } else {
-      await addAttendance(selectedDate, currentUser);
-    }
-  };
-
-  async function addAttendance(dateKey, name) {
-    setLoading(true);
-    try {
-      await set(ref(db, `botak_attendance/${dateKey}/${name}`), {
-        name,
-        busoo: currentBusoo,
-        jo: currentJo || '',
-        registeredAt: Date.now()
-      });
-      const [, m, d] = dateKey.split('-');
-      showToast(`"${name}" 님이 ${parseInt(m)}.${parseInt(d)}. 참석자로 등록되었습니다! 🏓`, 'success');
-    } catch(e) {
-      showToast('저장 실패: ' + e.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function removeAttendance(dateKey, name) {
-    setLoading(true);
-    try {
-      await remove(ref(db, `botak_attendance/${dateKey}/${name}`));
-      showToast(`"${name}" 님의 참석이 취소되었습니다`);
-    } catch(e) {
-      showToast('취소 실패: ' + e.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // ── 통계 업데이트 ──
-  function updateStats() {
-    const y = currentDate.getFullYear(), m = currentDate.getMonth();
-    const prefix = `${y}-${String(m+1).padStart(2,'0')}`;
-    let myCount = 0, totalDays = 0, totalAttendees = 0, maxAtt = 0;
-
-    Object.entries(attendanceData).forEach(([dateKey, dayData]) => {
-      if (!dateKey.startsWith(prefix)) return;
-      const names = Object.keys(dayData);
-      if (names.length > 0) {
-        totalDays++;
-        totalAttendees += names.length;
-        if (names.length > maxAtt) maxAtt = names.length;
-        if (names.includes(currentUser)) myCount++;
-      }
-    });
-
-    document.getElementById('statMyCount').textContent = myCount;
-    document.getElementById('statTotalDays').textContent = totalDays;
-    document.getElementById('statAvgAtt').textContent = totalDays > 0 ? Math.round(totalAttendees / totalDays) : 0;
-    document.getElementById('statMaxAtt').textContent = maxAtt;
-  }
-
-  // ── 길게 누르기 (Long Press) ──
-  function setupLongPress(el, callback) {
-    let timer = null;
-    const start = () => { timer = setTimeout(() => { callback(); timer = null; }, 600); };
-    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
-    el.addEventListener('mousedown', start);
-    el.addEventListener('touchstart', start, { passive: true });
-    el.addEventListener('mouseup', cancel);
-    el.addEventListener('mouseleave', cancel);
-    el.addEventListener('touchend', cancel);
-    el.addEventListener('touchcancel', cancel);
-  }
-
-  // ── 관리자 인증 키패드 ──
-  let _adminBuf = '';
-
-  function updateAdminDots() {
-    for (let i = 0; i < 4; i++) {
-      const d = document.getElementById('apd' + i);
-      if (!d) continue;
-      d.classList.remove('filled', 'error');
-      if (i < _adminBuf.length) d.classList.add('filled');
-    }
-  }
-
-  window.openAdminAuth = function() {
-    _adminBuf = '';
-    updateAdminDots();
-    document.getElementById('adminAuthErr').textContent = '';
-    // 관리자 모드 해제 시
-    if (isAdminMode) {
-      isAdminMode = false;
-      _adminSelectedName = null;
-      document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
-      const btn = document.getElementById('adminModeBtn');
-      if (btn) { btn.innerHTML = '⚙️ 관리자'; btn.style.background = 'rgba(255,165,0,0.2)'; btn.style.borderColor = 'rgba(255,165,0,0.5)'; }
-      if (selectedDate) { renderMobilePanel(); renderSidebar(); }
-      showToast('관리자 모드 해제');
-      return;
-    }
-    document.getElementById('adminAuthModal').classList.add('show');
-  };
-
-  window.closeAdminAuth = function() {
-    _adminBuf = '';
-    document.getElementById('adminAuthModal').classList.remove('show');
-  };
-
-  window.adminKey = function(n) {
-    if (_adminBuf.length >= 4) return;
-    _adminBuf += n;
-    updateAdminDots();
-    document.getElementById('adminAuthErr').textContent = '';
-    if (_adminBuf.length === 4) {
-      setTimeout(() => {
-        if (_adminBuf === ADMIN_PW) {
-          isAdminMode = true;
-          closeAdminAuth();
-          const btn = document.getElementById('adminModeBtn');
-          if (btn) { btn.innerHTML = '⚙️ 관리중'; btn.style.background = 'rgba(255,100,0,0.4)'; btn.style.borderColor = 'rgba(255,100,0,0.8)'; }
-          if (selectedDate) { renderMobilePanel(); renderSidebar(); }
-          showToast('관리자 모드 활성화', 'success');
-        } else {
-          document.getElementById('adminAuthErr').textContent = '비밀번호가 틀렸어요';
-          for (let i = 0; i < 4; i++) {
-            const d = document.getElementById('apd' + i);
-            if (d) { d.classList.remove('filled'); d.classList.add('error'); }
-          }
-          _adminBuf = '';
-          setTimeout(() => {
-            for (let i = 0; i < 4; i++) {
-              const d = document.getElementById('apd' + i);
-              if (d) d.classList.remove('error');
-            }
-          }, 600);
-        }
-      }, 120);
-    }
-  };
-
-  window.adminKeyDel = function() {
-    if (!_adminBuf.length) return;
-    _adminBuf = _adminBuf.slice(0, -1);
-    updateAdminDots();
-  };
-
-  // ── 확인 없이 바로 실행 ──
-  function openConfirm(msg, onOk) {
-    onOk();
-  }
-
-  // ── 랭킹/통계 모달 ──
-  let _rankPeriod = 'month';
-  let _rankView = 'personal';
-
-  // 조별 색상 (4개 조)
-  const JO_COLORS = ['#6b46c1', '#c05621', '#2b6cb0', '#b7791f'];
-
-  window.openRankingModal = function() {
-    _rankPeriod = 'month';
-    _rankView = 'personal';
-    document.querySelectorAll('.rp-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-    document.querySelectorAll('.rv-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-
-    // 연도 목록 생성 (Firebase 데이터 기준 최소~현재)
-    const now = new Date();
-    const curY = now.getFullYear();
-    const years = new Set([curY]);
-    Object.keys(attendanceData).forEach(k => years.add(parseInt(k.slice(0,4))));
-    const sortedYears = [...years].sort((a,b) => b - a);
-
-    ['rankSelYear','rankSelHalfYear','rankSelYearOnly'].forEach(id => {
-      const sel = document.getElementById(id);
-      sel.innerHTML = sortedYears.map(y => `<option value="${y}">${y}년</option>`).join('');
-      sel.value = curY;
-    });
-    document.getElementById('rankSelMonth').value = now.getMonth() + 1;
-    document.getElementById('rankSelHalf').value = now.getMonth() < 6 ? 1 : 2;
-
-    // 선택기 표시 초기화
-    updateRankSelector();
-    document.getElementById('rankingModal').classList.add('show');
-    renderRanking();
-  };
-
-  function updateRankSelector() {
-    document.getElementById('rankMonthSel').style.display = _rankPeriod === 'month' ? 'flex' : 'none';
-    document.getElementById('rankHalfSel').style.display  = _rankPeriod === 'half'  ? 'flex' : 'none';
-    document.getElementById('rankYearSel').style.display  = _rankPeriod === 'year'  ? 'flex' : 'none';
-  }
-
-  window.closeRankingModal = function() {
-    document.getElementById('rankingModal').classList.remove('show');
-  };
-
-  window.setRankPeriod = function(period, btn) {
-    _rankPeriod = period;
-    document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    updateRankSelector();
-    renderRanking();
-  };
-
-  window.setRankView = function(view, btn) {
-    _rankView = view;
-    document.querySelectorAll('.rv-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    renderRanking();
-  };
-
-  function getRankDateRange() {
-    if (_rankPeriod === 'month') {
-      const y = parseInt(document.getElementById('rankSelYear')?.value || new Date().getFullYear());
-      const m = parseInt(document.getElementById('rankSelMonth')?.value || new Date().getMonth() + 1);
-      const start = `${y}-${String(m).padStart(2,'0')}-01`;
-      const end   = `${y}-${String(m).padStart(2,'0')}-31`;
-      return { start, end, label: `${y}년 ${m}월` };
-    } else if (_rankPeriod === 'half') {
-      const y = parseInt(document.getElementById('rankSelHalfYear')?.value || new Date().getFullYear());
-      const half = parseInt(document.getElementById('rankSelHalf')?.value || 1);
-      const startM = half === 1 ? 1 : 7;
-      const endM   = half === 1 ? 6 : 12;
-      return {
-        start: `${y}-${String(startM).padStart(2,'0')}-01`,
-        end:   `${y}-${String(endM).padStart(2,'0')}-31`,
-        label: `${y}년 ${half === 1 ? '상반기 (1~6월)' : '하반기 (7~12월)'}`
-      };
-    } else {
-      const y = parseInt(document.getElementById('rankSelYearOnly')?.value || new Date().getFullYear());
-      return { start: `${y}-01-01`, end: `${y}-12-31`, label: `${y}년 연간` };
-    }
-  }
-
-  function calcRankingData() {
-    const { start, end } = getRankDateRange();
-    // 개인별 참석 집계
-    const personMap = {}; // { name: { count, busoo, jo } }
-    const joMap = {};     // { joName: { count, members: Set } }
-
-    Object.entries(attendanceData).forEach(([dateKey, dayData]) => {
-      if (dateKey < start || dateKey > end) return;
-      Object.entries(dayData).forEach(([name, val]) => {
-        if (!personMap[name]) {
-          personMap[name] = { count: 0, busoo: val.busoo || 0, jo: val.jo || '' };
-        }
-        personMap[name].count++;
-        // jo 최신값 반영
-        if (val.jo) personMap[name].jo = val.jo;
-        if (val.busoo) personMap[name].busoo = val.busoo;
-
-        // 조별 집계
-        const joName = val.jo || '';
-        if (joName) {
-          if (!joMap[joName]) joMap[joName] = { count: 0, members: {} };
-          joMap[joName].count++;
-          if (!joMap[joName].members[name]) joMap[joName].members[name] = 0;
-          joMap[joName].members[name]++;
-        }
-      });
-    });
-
-    // 개인 랭킹 (참석횟수 내림차순, 같으면 부수 오름차순)
-    const personalRank = Object.entries(personMap)
-      .map(([name, d]) => ({ name, ...d }))
-      .sort((a, b) => b.count - a.count || (a.busoo||99) - (b.busoo||99));
-
-    // 조별 랭킹 (총 참석 내림차순)
-    const joRank = Object.entries(joMap)
-      .map(([jo, d]) => ({
-        jo,
-        totalCount: d.count,
-        members: Object.entries(d.members)
-          .map(([name, count]) => ({ name, count, busoo: personMap[name]?.busoo || 0 }))
-          .sort((a, b) => b.count - a.count || (a.busoo||99) - (b.busoo||99))
-      }))
-      .sort((a, b) => b.totalCount - a.totalCount);
-
-    return { personalRank, joRank };
-  }
-
-  function renderRanking() {
-    const { label } = getRankDateRange();
-    document.getElementById('rankPeriodInfo').textContent = `📊 기간: ${label}`;
-
-    const { personalRank, joRank } = calcRankingData();
-    const content = document.getElementById('rankingContent');
-
-    if (_rankView === 'personal') {
-      const top30 = personalRank.slice(0, 50);
-      if (top30.length === 0) {
-        content.innerHTML = '<div class="ranking-empty">해당 기간에 참석 데이터가 없습니다</div>';
-        return;
-      }
-      let html = `<table class="ranking-table">
-        <thead><tr>
-          <th style="width:44px;">순위</th>
-          <th style="width:52px;">부수</th>
-          <th>성명</th>
-          <th style="width:72px;">참석횟수</th>
-        </tr></thead><tbody>`;
-      top30.forEach((p, i) => {
-        const rank = i + 1;
-        let medal = '';
-        if (rank === 1) medal = '🥇';
-        else if (rank === 2) medal = '🥈';
-        else if (rank === 3) medal = '🥉';
-        const isMe = (p.name === currentUser);
-        html += `<tr ${isMe ? 'style="background:#fffbeb;"' : ''}>
-          <td>${medal ? `<span class="rank-medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}</td>
-          <td><span class="busoo-badge">${p.busoo || '-'}부</span></td>
-          <td>${p.name}${isMe ? ' <span style="font-size:10px;color:#059669;font-weight:700;">★나</span>' : ''}</td>
-          <td><span class="att-count-num">${p.count}</span><span style="font-size:10px;color:var(--text-muted);margin-left:2px;">회</span></td>
-        </tr>`;
-      });
-      html += `</tbody></table>`;
-      content.innerHTML = html;
-    } else {
-      // 조별 랭킹
-      if (joRank.length === 0) {
-        content.innerHTML = '<div class="ranking-empty">해당 기간에 조 참석 데이터가 없습니다<br><small style="font-size:11px;margin-top:4px;display:block;">조명을 등록한 참석자 데이터가 필요합니다</small></div>';
-        return;
-      }
-      let html = '<div class="jo-rank-grid">';
-      joRank.forEach((jd, idx) => {
-        const color = JO_COLORS[idx % JO_COLORS.length];
-        html += `<div class="jo-rank-card">
-          <div class="jo-rank-header" style="background:${color};">
-            <span>${idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'🏅'} ${jd.jo}</span>
-            <span class="jo-rank-total">총 ${jd.totalCount}회 참석</span>
-          </div>
-          <table class="ranking-table">
-            <thead><tr>
-              <th style="width:44px;">순위</th>
-              <th style="width:52px;">부수</th>
-              <th>성명</th>
-              <th style="width:72px;">참석횟수</th>
-            </tr></thead><tbody>`;
-        jd.members.slice(0, 50).forEach((m, mi) => {
-          const isMe = (m.name === currentUser);
-          html += `<tr ${isMe ? 'style="background:#fffbeb;"' : ''}>
-            <td><span class="rank-num">${mi + 1}</span></td>
-            <td><span class="busoo-badge">${m.busoo || '-'}부</span></td>
-            <td>${m.name}${isMe ? ' <span style="font-size:10px;color:#059669;font-weight:700;">★나</span>' : ''}</td>
-            <td><span class="att-count-num">${m.count}</span><span style="font-size:10px;color:var(--text-muted);margin-left:2px;">회</span></td>
-          </tr>`;
-        });
-        html += `</tbody></table></div>`;
-      });
-      html += '</div>';
-      content.innerHTML = html;
-    }
-  }
-
-  // 모달 외부 클릭 닫기
-  document.getElementById('rankingModal').addEventListener('click', function(e) {
-    if (e.target === this) closeRankingModal();
-  });
-
-
-  document.getElementById('prevBtn').addEventListener('click', () => {
-    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    renderCalendar();
-    updateStats();
-  });
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-    renderCalendar();
-    updateStats();
-  });
-</script>
 <script>
-// ── PWA 설치 프롬프트 캡처 ──
-let _installPrompt = null;
-let _isInstalled = false;
+// ── 키 매핑 참조표 ──────────────────────────
+const KEY_MAP = [
+  { key:'Enter',     code:'Enter',        keyCode:13  },
+  { key:'Escape',    code:'Escape',       keyCode:27  },
+  { key:' ',         code:'Space',        keyCode:32  },
+  { key:'ArrowUp',   code:'ArrowUp',      keyCode:38  },
+  { key:'ArrowDown', code:'ArrowDown',    keyCode:40  },
+  { key:'ArrowLeft', code:'ArrowLeft',    keyCode:37  },
+  { key:'ArrowRight',code:'ArrowRight',   keyCode:39  },
+  { key:'PageUp',    code:'PageUp',       keyCode:33  },
+  { key:'PageDown',  code:'PageDown',     keyCode:34  },
+  { key:'Home',      code:'Home',         keyCode:36  },
+  { key:'End',       code:'End',          keyCode:35  },
+  { key:'Tab',       code:'Tab',          keyCode:9   },
+  { key:'Backspace', code:'Backspace',    keyCode:8   },
+  { key:'Delete',    code:'Delete',       keyCode:46  },
+  { key:'F1',        code:'F1',           keyCode:112 },
+  { key:'F2',        code:'F2',           keyCode:113 },
+  { key:'F5',        code:'F5',           keyCode:116 },
+  { key:'MediaPlayPause', code:'MediaPlayPause', keyCode:179 },
+  { key:'MediaStop',      code:'MediaStop',      keyCode:178 },
+  { key:'MediaTrackNext', code:'MediaTrackNext', keyCode:176 },
+  { key:'MediaTrackPrevious','code':'MediaTrackPrevious',keyCode:177 },
+  { key:'VolumeUp',   code:'VolumeUp',    keyCode:175 },
+  { key:'VolumeDown', code:'VolumeDown',  keyCode:174 },
+  { key:'a', code:'KeyA', keyCode:65 },
+  { key:'b', code:'KeyB', keyCode:66 },
+  { key:'c', code:'KeyC', keyCode:67 },
+  { key:'d', code:'KeyD', keyCode:68 },
+  { key:'0', code:'Digit0', keyCode:48 },
+  { key:'1', code:'Digit1', keyCode:49 },
+  { key:'2', code:'Digit2', keyCode:50 },
+  { key:'5', code:'Digit5', keyCode:53 },
+];
 
-// 이미 설치(standalone)로 실행 중이면 설치됨으로 간주
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-  _isInstalled = true;
+// 매핑 표 렌더
+const mapGrid = document.getElementById('mapGrid');
+KEY_MAP.forEach((m,i) => {
+  const cell = document.createElement('div');
+  cell.className = 'map-cell';
+  cell.id = 'mc_' + i;
+  cell.innerHTML = `
+    <span class="mk">${m.key === ' ' ? 'Space' : m.key}</span>
+    <span class="mc">code: ${m.code}</span>
+    <span class="mc">keyCode: ${m.keyCode}</span>`;
+  cell.onclick = () => highlightCell(i);
+  mapGrid.appendChild(cell);
+});
+
+// ── 상태 ────────────────────────────────────
+let logData = [];
+let logCount = 0;
+let activeFilters = new Set(['keydown','keyup']);
+let isFocused = false;
+
+// ── 포커스 ───────────────────────────────────
+function focusInput() {
+  document.getElementById('hiddenInput').focus();
+}
+function setFocused(v) {
+  isFocused = v;
+  const area = document.getElementById('focusArea');
+  const lbl  = document.getElementById('focusLabel');
+  area.classList.toggle('focused', v);
+  lbl.innerHTML = v
+    ? '<span class="pulse"></span>입력 대기 중 — 블루투스 버튼을 눌러보세요'
+    : '📱 여기를 탭하여 입력 대기 시작';
 }
 
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _installPrompt = e;
-  _isInstalled = false;
-  // 로고 아래 힌트 표시
-  const sub = document.getElementById('pwSubMsg');
-  if(sub) sub.textContent = '🔼 로고를 누르면 앱 설치';
-  // 로고 강조
-  const icon = document.getElementById('installIcon');
-  if(icon) icon.style.filter = 'drop-shadow(0 0 8px rgba(52,152,219,0.9))';
+// 페이지 로드 시 자동 포커스
+window.addEventListener('load', () => setTimeout(focusInput, 300));
+
+// ── 이벤트 필터 ──────────────────────────────
+function toggleFilter(type, btn) {
+  if(activeFilters.has(type)) activeFilters.delete(type);
+  else activeFilters.add(type);
+  btn.classList.toggle('active', activeFilters.has(type));
+}
+
+// ── 이벤트 처리 ──────────────────────────────
+function handleEvent(e) {
+  if(!activeFilters.has(e.type)) return;
+
+  const key      = e.key      || '';
+  const code     = e.code     || '';
+  const keyCode  = e.keyCode  || 0;
+  const which    = e.which    || 0;
+  const charCode = e.charCode || 0;
+
+  // 매핑 일치 검색
+  const matched = KEY_MAP.filter(m =>
+    m.key === key || m.code === code || m.keyCode === keyCode
+  );
+
+  // 디스플레이 업데이트
+  const hl = (id, val) => {
+    const el = document.getElementById(id);
+    el.innerHTML = `<span>${val}</span>`;
+    el.classList.remove('highlight','matched');
+    void el.offsetWidth;
+    el.classList.add(matched.length ? 'matched' : 'highlight');
+  };
+  hl('dispKey',     key     || '(없음)');
+  hl('dispCode',    code    || '(없음)');
+  hl('dispKeyCode', keyCode || '—');
+  hl('dispWhich',   which   || '—');
+  hl('dispChar',    charCode|| '—');
+  hl('dispType',    e.type);
+
+  const matchEl = document.getElementById('dispMatch');
+  if(matched.length) {
+    matchEl.innerHTML = `<span class="match-badge yes">✓ 일치 — ${matched.map(m=>m.key==' '?'Space':m.key).join(', ')}</span>`;
+    // 매핑 표 셀 강조
+    matched.forEach(m => {
+      const idx = KEY_MAP.indexOf(m);
+      highlightCell(idx);
+    });
+  } else {
+    matchEl.innerHTML = `<span class="match-badge no">✗ 매핑 없음</span>`;
+  }
+
+  // 로그 추가
+  logCount++;
+  logData.unshift({ num:logCount, type:e.type, key, code, keyCode, which, matched:matched.length>0 });
+  renderLog();
+
+  // Tab/Enter 기본 동작 방지
+  if(['Tab','Enter',' '].includes(key)) e.preventDefault();
+}
+
+// keydown/keyup/keypress
+['keydown','keyup','keypress'].forEach(t =>
+  document.addEventListener(t, handleEvent)
+);
+// input 이벤트 (일부 BT 장치는 keydown 없이 input만 발생)
+document.getElementById('hiddenInput').addEventListener('input', e => {
+  if(!activeFilters.has('input')) return;
+  const val = e.data || e.target.value;
+  const fake = { type:'input', key:val, code:'', keyCode:0, which:0, charCode:0, preventDefault:()=>{} };
+  handleEvent(fake);
+  e.target.value = '';
 });
 
-// 이미 설치된 경우
-window.addEventListener('appinstalled', () => {
-  _isInstalled = true;
-  _installPrompt = null;
-  const sub = document.getElementById('pwSubMsg');
-  if(sub) sub.textContent = '';
-  const icon = document.getElementById('installIcon');
-  if(icon) icon.style.filter = '';
-});
-
-// ── 캐시 새로고침 ──
-window.hardRefresh = async function(){
-  const btn = event && event.target;
-  if(btn){ btn.textContent='🔄 초기화중...'; btn.style.color='#3498db'; }
-  try{
-    if('caches' in window){
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-    if('serviceWorker' in navigator){
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-  } catch(e){ console.warn('캐시 삭제 오류:', e); }
-  location.reload(true);
-};
-
-// ── 로고 클릭 → 설치 프롬프트 실행 ──
-window.triggerInstall = async function(){
-  if(_isInstalled){
-    const sub = document.getElementById('pwSubMsg');
-    if(sub){
-      sub.textContent = '✅ 이미 설치된 앱입니다';
-      setTimeout(()=>{ sub.textContent=''; }, 2000);
-    }
+// ── 로그 렌더 ────────────────────────────────
+function renderLog() {
+  const list = document.getElementById('logList');
+  document.getElementById('logCount').textContent = logData.length;
+  if(!logData.length) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:0.8rem;">버튼을 누르면 여기에 기록됩니다</div>';
     return;
   }
-  if(!_installPrompt){
-    const sub = document.getElementById('pwSubMsg');
-    if(sub){
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      if(isIOS){
-        sub.textContent = '📲 Safari 공유버튼 → 홈 화면에 추가';
-      } else {
-        sub.textContent = '브라우저 주소창 오른쪽 설치 아이콘을 눌러주세요';
-      }
-      setTimeout(()=>{ sub.textContent = _isInstalled ? '' : '🔼 로고를 누르면 앱 설치'; }, 4000);
-    }
-    return;
-  }
-  _installPrompt.prompt();
-  const result = await _installPrompt.userChoice;
-  if(result.outcome === 'accepted') _installPrompt = null;
-};
+  list.innerHTML = logData.slice(0,60).map(d => `
+    <div class="log-item">
+      <span class="log-num">#${d.num}</span>
+      <span class="log-key">${d.key === ' ' ? '[Space]' : (d.key||'?')}</span>
+      <span class="log-code">${d.code||d.type}</span>
+      <span class="log-which">${d.keyCode||'—'}</span>
+      <span class="log-match ${d.matched?'y':'n'}">${d.matched?'✓ 일치':'—'}</span>
+    </div>`).join('');
+}
 
-// ── Service Worker 등록 ──
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.warn('SW error:', err));
+function clearLog() {
+  logData = []; logCount = 0; renderLog();
+  ['dispKey','dispCode','dispKeyCode','dispWhich','dispChar','dispType'].forEach(id => {
+    document.getElementById(id).innerHTML = '<span style="color:var(--muted)">—</span>';
+    document.getElementById(id).className = 'display-value';
   });
+  document.getElementById('dispMatch').innerHTML = '<span class="match-badge wait">대기 중</span>';
+}
+
+// ── 매핑 표 셀 강조 ──────────────────────────
+function highlightCell(idx) {
+  const cell = document.getElementById('mc_' + idx);
+  if(!cell) return;
+  cell.classList.remove('hit');
+  void cell.offsetWidth;
+  cell.classList.add('hit');
+  cell.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 </script>
 </body>
