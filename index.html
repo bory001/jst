@@ -723,7 +723,7 @@
     border-top: 1px solid var(--border); flex-wrap: wrap;
   }
   .mdp-admin-btn {
-    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
     font-family: inherit; cursor: pointer; border: none; white-space: nowrap;
   }
   .mdp-admin-btn.blue { background: rgba(45,95,138,0.15); color: var(--primary); border: 1px solid rgba(45,95,138,0.4); }
@@ -835,22 +835,19 @@
       <!-- 모바일 하단 패널 -->
       <div class="mobile-day-panel" id="mobileDayPanel">
         <div class="mdp-header">
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <div class="mdp-date" id="mdpDate">날짜를 선택하세요</div>
+          <div style="display:flex;flex-direction:column;gap:4px;width:100%;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <div class="mdp-date" id="mdpDate">날짜를 선택하세요</div>
+              <div class="mdp-att-count" id="mdpAttCount" style="display:none;"></div>
+              <!-- 관리자 버튼 (날짜 우측 인라인) -->
+              <div id="mdpAdminRow" style="display:none;margin-left:auto;gap:4px;flex-shrink:0;">
+                <button class="mdp-admin-btn blue" onclick="openScheduleModal()">📋 일정</button>
+                <button class="mdp-admin-btn green" id="mdpManualToggle" onclick="toggleManualForm()">👤 추가</button>
+              </div>
+            </div>
             <!-- 일정 정보 표시 -->
             <div id="mdpSchedBar" style="display:none;"></div>
           </div>
-          <div class="mdp-att-count" id="mdpAttCount" style="display:none;"></div>
-        </div>
-        <div class="mdp-att-grid" id="mdpAttGrid">
-          <div class="mdp-empty">날짜를 선택해 주세요</div>
-        </div>
-        <div class="long-press-hint" id="mdpChipHint" style="display:none;">이름 클릭 → 전화/문자 선택 | 길게 누르면 등록시각 조회</div>
-        <button class="mdp-attend-btn register" id="mdpAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
-        <!-- 관리자 버튼 행 -->
-        <div class="mdp-admin-row" id="mdpAdminRow" style="display:none;">
-          <button class="mdp-admin-btn blue" onclick="openScheduleModal()">📋 일정 설정</button>
-          <button class="mdp-admin-btn green" id="mdpManualToggle" onclick="toggleManualForm()">👤 참석 추가</button>
         </div>
         <!-- 수동 참석 추가 폼 -->
         <div class="mdp-manual-form" id="mdpManualForm">
