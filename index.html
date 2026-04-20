@@ -709,14 +709,15 @@
   /* 텍스트 정보 */
   .rest-card-info { flex: 1; min-width: 0; }
   .rest-card-name { font-size: 13px; font-weight: 800; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rest-card-sub  { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rest-card-sub  { font-size: 10px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* 우측 액션 버튼들 — 가로 한 줄 */
   .rest-card-actions { display: flex; flex-direction: row; gap: 3px; flex-shrink: 0; align-items: center; }
 
   .rest-card-call {
-    font-size: 11px; font-weight: 700; color: #1565c0;
+    font-size: 14px; font-weight: 700; color: #1565c0;
     background: #e3f2fd; border: none; border-radius: 6px;
-    padding: 3px 7px; cursor: pointer; white-space: nowrap;
+    width: 26px; height: 26px; cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .rest-card-call:active { background: #bbdefb; }
   .rest-card-del {
