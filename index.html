@@ -801,12 +801,17 @@
 
   /* ── 이미지 뷰어 ── */
   .img-viewer-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
     display: none; align-items: center; justify-content: center; z-index: 900;
-    cursor: pointer;
+    cursor: zoom-out; overflow: hidden;
   }
   .img-viewer-overlay.show { display: flex; }
-  .img-viewer-overlay img { max-width: 94vw; max-height: 90vh; border-radius: 10px; }
+  .img-viewer-overlay img {
+    max-width: 94vw; max-height: 90vh; border-radius: 10px;
+    touch-action: none; user-select: none;
+    transform-origin: center center;
+    transition: none;
+  }
 
 
   .contact-popup-overlay {
@@ -957,8 +962,8 @@
     <div class="header-right">
       <button class="hdr-btn hdr-attend-btn" id="hdrTimeBtn" onclick="openTimeModal()" style="display:none;">⏰ 시각등록</button>
       <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
-      <button class="hdr-btn" onclick="openRecModal()" style="background:rgba(251,191,36,0.25);border-color:rgba(251,191,36,0.7);">🍴 식당추천</button>
       <button class="hdr-btn" onclick="openFavModal()" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.6);">⭐ Favorite</button>
+      <button class="hdr-btn" onclick="openRecModal()" style="background:rgba(251,191,36,0.25);border-color:rgba(251,191,36,0.7);">🍴 식당추천</button>
       <button class="hdr-btn" id="memberDbBtn" onclick="openMemberDb()" style="display:none;background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.7);">👥 회원DB</button>
       <button class="hdr-btn" onclick="openRankingModal()" style="background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.7);">🏆 통계</button>
       <button class="hdr-btn" id="adminModeBtn" onclick="openAdminAuth()" style="background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);">⚙️ 관리자</button>
@@ -1350,8 +1355,9 @@
 </div>
 
 <!-- 이미지 뷰어 -->
-<div class="img-viewer-overlay" id="imgViewer" onclick="this.classList.remove('show')">
+<div class="img-viewer-overlay" id="imgViewer">
   <img id="imgViewerImg" src="" alt="">
+  <button onclick="closeImgViewer()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;color:white;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;z-index:901;display:flex;align-items:center;justify-content:center;">✕</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -2834,9 +2840,100 @@
   };
 
   function openImgViewer(src) {
-    document.getElementById('imgViewerImg').src = src;
-    document.getElementById('imgViewer').classList.add('show');
+    const overlay = document.getElementById('imgViewer');
+    const img = document.getElementById('imgViewerImg');
+    img.src = src;
+    img.style.transform = 'scale(1)';
+    img.style.marginLeft = '0px';
+    img.style.marginTop = '0px';
+    overlay.classList.add('show');
+
+    // ── 핀치 줌 & 드래그 ──
+    let scale = 1, startDist = 0, startScale = 1;
+    let dragging = false, dragStartX = 0, dragStartY = 0;
+    let offsetX = 0, offsetY = 0;
+
+    function getDistance(t) {
+      const dx = t[0].clientX - t[1].clientX;
+      const dy = t[0].clientY - t[1].clientY;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function applyTransform() {
+      img.style.transform = `scale(${scale})`;
+      img.style.marginLeft = offsetX + 'px';
+      img.style.marginTop  = offsetY + 'px';
+    }
+
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        startDist = getDistance(e.touches);
+        startScale = scale;
+        e.preventDefault();
+      } else if (e.touches.length === 1 && scale > 1) {
+        dragging = true;
+        dragStartX = e.touches[0].clientX - offsetX;
+        dragStartY = e.touches[0].clientY - offsetY;
+        e.preventDefault();
+      }
+    }
+    function onTouchMove(e) {
+      if (e.touches.length === 2) {
+        const d = getDistance(e.touches);
+        scale = Math.min(5, Math.max(1, startScale * (d / startDist)));
+        if (scale <= 1) { scale = 1; offsetX = 0; offsetY = 0; }
+        applyTransform();
+        e.preventDefault();
+      } else if (dragging && e.touches.length === 1) {
+        offsetX = e.touches[0].clientX - dragStartX;
+        offsetY = e.touches[0].clientY - dragStartY;
+        applyTransform();
+        e.preventDefault();
+      }
+    }
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) dragging = false;
+      if (scale <= 1) { scale = 1; offsetX = 0; offsetY = 0; applyTransform(); }
+    }
+    // 배경 탭(이미지 바깥) → 닫기, 이미지 더블탭 → 줌 리셋
+    function onOverlayClick(e) {
+      if (e.target === overlay) closeImgViewer();
+    }
+    let lastTap = 0;
+    function onImgDblTap(e) {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        scale = scale > 1 ? 1 : 2;
+        offsetX = 0; offsetY = 0; applyTransform();
+      }
+      lastTap = now;
+    }
+
+    // 이전 리스너 제거 후 재등록
+    overlay._cleanup && overlay._cleanup();
+    overlay.addEventListener('click', onOverlayClick);
+    img.addEventListener('touchstart', onTouchStart, { passive: false });
+    img.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    img.addEventListener('touchend',   onTouchEnd);
+    img.addEventListener('touchstart', onImgDblTap);
+
+    overlay._cleanup = () => {
+      overlay.removeEventListener('click', onOverlayClick);
+      img.removeEventListener('touchstart', onTouchStart);
+      img.removeEventListener('touchmove',  onTouchMove);
+      img.removeEventListener('touchend',   onTouchEnd);
+      img.removeEventListener('touchstart', onImgDblTap);
+    };
   }
+
+  window.closeImgViewer = function() {
+    const overlay = document.getElementById('imgViewer');
+    overlay.classList.remove('show');
+    overlay._cleanup && overlay._cleanup();
+    const img = document.getElementById('imgViewerImg');
+    img.style.transform = 'scale(1)';
+    img.style.marginLeft = '0px';
+    img.style.marginTop  = '0px';
+  };
 
   document.getElementById('favModal').addEventListener('click', function(e) { if(e.target===this) closeFavModal(); });
   document.getElementById('recModal').addEventListener('click', function(e) { if(e.target===this) closeRecModal(); });
