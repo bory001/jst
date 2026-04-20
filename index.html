@@ -1317,7 +1317,7 @@
   <div class="rest-modal-box">
     <div class="rest-modal-title">
       <span>🍴 식당 추천</span>
-      <button class="mdp-admin-btn blue" id="recAddToggleBtn" onclick="toggleRestForm('rec',true)">➕ 추가</button>
+      <button class="mdp-admin-btn green" id="recAddToggleBtn" onclick="toggleRestForm('rec',true)">➕ 추가</button>
     </div>
     <div class="rest-add-form" id="recAddForm">
       <div class="rest-add-row">
@@ -1325,7 +1325,7 @@
         <input type="text" class="rest-add-inp" id="recInpPhone" placeholder="연락처" maxlength="14"
           oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
       </div>
-      <input type="text" class="rest-add-inp" id="recInpMenu" placeholder="추천 메뉴 또는 설명" maxlength="30">
+      <input type="text" class="rest-add-inp" id="recInpMenu" placeholder="주메뉴 (예: 삼겹살, 된장찌개)" maxlength="30">
       <div class="rest-err" id="recAddErr"></div>
       <div class="rest-add-btns">
         <button class="rest-save-btn" onclick="saveRest('rec')">저장</button>
