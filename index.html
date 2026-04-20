@@ -651,106 +651,98 @@
   .mdb-search:focus { border-color: var(--primary); }
   #mdbFileInput { display: none; }
 
-  /* ── 즐겨찾기(Favorite) 모달 ── */
-  .fav-modal-overlay {
+  /* ── 식당 공통 모달 (Favorite / 식당추천 공유) ── */
+  .rest-modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     display: none; align-items: flex-start; justify-content: center;
     z-index: 650; padding: 0.5rem; overflow-y: auto;
   }
-  .fav-modal-overlay.show { display: flex; }
-  .fav-modal-box {
+  .rest-modal-overlay.show { display: flex; }
+  .rest-modal-box {
     background: white; border-radius: 16px; padding: 1rem;
-    width: 100%; max-width: 560px; margin: auto;
+    width: 100%; max-width: 520px; margin: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   }
-  .fav-modal-title { font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 0.75rem; }
-  .fav-add-form {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-    margin-bottom: 0.75rem; padding: 10px; background: var(--bg);
-    border-radius: 10px; border: 1px solid var(--border);
+  .rest-modal-title {
+    font-size: 15px; font-weight: 800; color: var(--primary);
+    margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between;
   }
-  .fav-add-form input {
-    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 13px; font-family: inherit; outline: none; color: var(--text);
+  /* 컴팩트 추가 폼 */
+  .rest-add-form {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 10px; margin-bottom: 8px; display: none; flex-direction: column; gap: 6px;
   }
-  .fav-add-form input:focus { border-color: var(--primary); }
-  .fav-add-form input.full { grid-column: 1 / -1; }
-  .fav-add-btn {
-    grid-column: 1 / -1; padding: 9px; background: var(--accent); color: white;
-    border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
-    font-family: inherit; cursor: pointer;
+  .rest-add-form.open { display: flex; }
+  .rest-add-row { display: flex; gap: 6px; }
+  .rest-add-inp {
+    flex: 1; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; font-family: inherit; outline: none; min-width: 0;
   }
-  .fav-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
-  .fav-card {
-    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
-    background: white;
+  .rest-add-inp:focus { border-color: var(--primary); }
+  .rest-add-btns { display: flex; gap: 6px; }
+  .rest-save-btn {
+    flex: 1; padding: 8px; background: var(--accent); color: white; border: none;
+    border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
   }
-  .fav-card-top {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px; background: var(--bg); gap: 8px;
+  .rest-cancel-btn {
+    flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; font-family: inherit; cursor: pointer; color: var(--text-muted);
   }
-  .fav-card-info { flex: 1; min-width: 0; }
-  .fav-card-name { font-size: 14px; font-weight: 800; color: var(--primary); }
-  .fav-card-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .fav-card-phone {
-    font-size: 12px; font-weight: 700; color: #1565c0;
-    background: #e3f2fd; border: none; border-radius: 8px;
-    padding: 5px 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  /* 카드 목록 */
+  .rest-list { display: flex; flex-direction: column; gap: 6px; max-height: 460px; overflow-y: auto; }
+  .rest-card {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
+    background: white; transition: background 0.12s;
   }
-  .fav-card-phone:active { background: #bbdefb; }
-  .fav-card-del {
+  .rest-card:hover { background: #f8faff; }
+  /* 대표 이미지 or 플레이스홀더 */
+  .rest-card-img {
+    width: 46px; height: 46px; border-radius: 8px; object-fit: cover;
+    border: 1px solid var(--border); flex-shrink: 0; cursor: pointer;
+  }
+  .rest-card-ph {
+    width: 46px; height: 46px; border-radius: 8px; background: var(--bg);
+    border: 1px solid var(--border); display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  /* 텍스트 정보 */
+  .rest-card-info { flex: 1; min-width: 0; }
+  .rest-card-name { font-size: 13px; font-weight: 800; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rest-card-sub  { font-size: 11px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 우측 액션 버튼들 */
+  .rest-card-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-items: flex-end; }
+  .rest-card-call {
+    font-size: 11px; font-weight: 700; color: #1565c0;
+    background: #e3f2fd; border: none; border-radius: 7px;
+    padding: 4px 9px; cursor: pointer; white-space: nowrap;
+  }
+  .rest-card-call:active { background: #bbdefb; }
+  .rest-card-del {
     font-size: 11px; color: var(--danger); background: #fef2f2;
-    border: 1px solid #fecaca; border-radius: 6px; padding: 4px 8px;
-    cursor: pointer; flex-shrink: 0;
+    border: 1px solid #fecaca; border-radius: 7px; padding: 3px 8px; cursor: pointer;
   }
-  .fav-card-img-area {
-    padding: 8px 12px; border-top: 1px solid var(--border);
-    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  /* 사진 추가 버튼 (카드 안, 우측 하단 작게) */
+  .rest-img-add {
+    width: 36px; height: 36px; border-radius: 6px; border: 1.5px dashed var(--border);
+    background: var(--bg); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+    flex-shrink: 0;
   }
-  .fav-thumb {
-    width: 64px; height: 64px; object-fit: cover; border-radius: 8px;
-    border: 1px solid var(--border); cursor: pointer;
+  .rest-img-add:hover { border-color: var(--primary); color: var(--primary); }
+  .rest-thumb-sm {
+    width: 36px; height: 36px; border-radius: 6px; object-fit: cover;
+    border: 1px solid var(--border); cursor: pointer; flex-shrink: 0;
   }
-  .fav-img-add-btn {
-    width: 64px; height: 64px; border-radius: 8px; border: 2px dashed var(--border);
-    background: var(--bg); font-size: 22px; cursor: pointer; display: flex;
-    align-items: center; justify-content: center; color: var(--text-muted);
-  }
-  .fav-img-del {
+  .rest-thumb-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+  .rest-img-del {
     position: absolute; top: -4px; right: -4px; background: var(--danger);
-    color: white; border: none; border-radius: 50%; width: 18px; height: 18px;
-    font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; line-height: 1;
+    color: white; border: none; border-radius: 50%; width: 15px; height: 15px;
+    font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; line-height: 1; z-index: 2;
   }
-  .fav-thumb-wrap { position: relative; display: inline-block; }
-
-  /* ── 식당 추천 모달 ── */
-  .rec-modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: none; align-items: flex-start; justify-content: center;
-    z-index: 650; padding: 0.5rem; overflow-y: auto;
-  }
-  .rec-modal-overlay.show { display: flex; }
-  .rec-modal-box {
-    background: white; border-radius: 16px; padding: 1rem;
-    width: 100%; max-width: 480px; margin: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .rec-modal-title { font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 0.75rem; }
-  .rec-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
-  .rec-card {
-    border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px; cursor: pointer; transition: all 0.15s;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .rec-card:hover { background: #eff6ff; border-color: var(--primary-light); }
-  .rec-card-img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-  .rec-card-img-ph { width: 52px; height: 52px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-  .rec-card-info { flex: 1; min-width: 0; }
-  .rec-card-name { font-size: 14px; font-weight: 700; color: var(--primary); }
-  .rec-card-menu { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .rec-card-phone { font-size: 11px; color: #1565c0; margin-top: 2px; font-weight: 600; }
-  .rec-empty { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 13px; }
+  .rest-err { font-size: 12px; color: var(--danger); min-height: 14px; }
+  .rest-empty { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 13px; }
 
   /* ── 메뉴 입력 모달 ── */
   .menu-modal-overlay {
@@ -940,14 +932,6 @@
       <div class="subtitle">(보령시 전산팀)</div>
     </div>
     <div class="header-right">
-      <div class="sync-dot-wrap">
-        <div class="sync-dot" id="syncDot"></div>
-        <span class="sync-label" id="syncLabel">연결됨</span>
-      </div>
-      <div class="user-badge" id="userBadge" style="display:none!important;">
-        <div class="user-dot"></div>
-        <span id="headerUserName"></span>
-      </div>
       <button class="hdr-btn hdr-attend-btn" id="hdrTimeBtn" onclick="openTimeModal()" style="display:none;">⏰ 시각등록</button>
       <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
       <button class="hdr-btn" onclick="openRecModal()" style="background:rgba(251,191,36,0.25);border-color:rgba(251,191,36,0.7);">🍴 식당추천</button>
@@ -1276,35 +1260,57 @@
 </div>
 
 <!-- ⭐ Favorite 모달 -->
-<div class="fav-modal-overlay" id="favModal">
-  <div class="fav-modal-box">
-    <div class="fav-modal-title">⭐ 즐겨찾는 식당</div>
-    <!-- 추가 폼 -->
-    <div class="fav-add-form" id="favAddForm" style="display:none;">
-      <input type="text" id="favInpName" placeholder="식당명 *" maxlength="20" class="full">
-      <input type="text" id="favInpPhone" placeholder="연락처 (010-0000-0000)" maxlength="14"
-        oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
-      <input type="text" id="favInpMenu" placeholder="주메뉴 (예: 삼겹살, 된장찌개)" maxlength="30">
-      <div class="mdb-err" id="favAddErr" style="grid-column:1/-1;"></div>
-      <button class="fav-add-btn" onclick="saveFav()">✅ 저장</button>
-      <button style="grid-column:1/-1;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;" onclick="toggleFavForm(false)">취소</button>
+<div class="rest-modal-overlay" id="favModal">
+  <div class="rest-modal-box">
+    <div class="rest-modal-title">
+      <span>⭐ 즐겨찾는 식당</span>
+      <button class="mdp-admin-btn green" id="favAddToggleBtn" onclick="toggleRestForm('fav',true)">➕ 추가</button>
     </div>
-    <div style="margin-bottom:8px;display:flex;justify-content:flex-end;">
-      <button class="mdp-admin-btn green" id="favAddToggleBtn" onclick="toggleFavForm(true)">➕ 식당 추가</button>
+    <div class="rest-add-form" id="favAddForm">
+      <div class="rest-add-row">
+        <input type="text" class="rest-add-inp" id="favInpName" placeholder="식당명 *" maxlength="20">
+        <input type="text" class="rest-add-inp" id="favInpPhone" placeholder="연락처" maxlength="14"
+          oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
+      </div>
+      <input type="text" class="rest-add-inp" id="favInpMenu" placeholder="주메뉴 (예: 삼겹살, 된장찌개)" maxlength="30">
+      <div class="rest-err" id="favAddErr"></div>
+      <div class="rest-add-btns">
+        <button class="rest-save-btn" onclick="saveRest('fav')">저장</button>
+        <button class="rest-cancel-btn" onclick="toggleRestForm('fav',false)">취소</button>
+      </div>
     </div>
-    <div class="fav-list" id="favList"><div class="rec-empty">등록된 식당이 없어요</div></div>
-    <button class="mdb-close-btn" onclick="closeFavModal()" style="margin-top:0.75rem;">닫기</button>
+    <div class="rest-list" id="favList"><div class="rest-empty">등록된 식당이 없어요</div></div>
+    <button class="mdb-close-btn" onclick="closeFavModal()" style="margin-top:0.6rem;">닫기</button>
   </div>
 </div>
 
 <!-- 🍴 식당 추천 모달 -->
-<div class="rec-modal-overlay" id="recModal">
-  <div class="rec-modal-box">
-    <div class="rec-modal-title">🍴 식당 추천</div>
-    <div class="rec-list" id="recList"><div class="rec-empty">등록된 즐겨찾기 식당이 없어요<br><small style="margin-top:4px;display:block;">⭐ Favorite에서 먼저 등록해주세요</small></div></div>
-    <button class="mdb-close-btn" onclick="closeRecModal()" style="margin-top:0.75rem;">닫기</button>
+<div class="rest-modal-overlay" id="recModal">
+  <div class="rest-modal-box">
+    <div class="rest-modal-title">
+      <span>🍴 식당 추천</span>
+      <button class="mdp-admin-btn blue" id="recAddToggleBtn" onclick="toggleRestForm('rec',true)">➕ 추가</button>
+    </div>
+    <div class="rest-add-form" id="recAddForm">
+      <div class="rest-add-row">
+        <input type="text" class="rest-add-inp" id="recInpName" placeholder="식당명 *" maxlength="20">
+        <input type="text" class="rest-add-inp" id="recInpPhone" placeholder="연락처" maxlength="14"
+          oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
+      </div>
+      <input type="text" class="rest-add-inp" id="recInpMenu" placeholder="추천 메뉴 또는 설명" maxlength="30">
+      <div class="rest-err" id="recAddErr"></div>
+      <div class="rest-add-btns">
+        <button class="rest-save-btn" onclick="saveRest('rec')">저장</button>
+        <button class="rest-cancel-btn" onclick="toggleRestForm('rec',false)">취소</button>
+      </div>
+    </div>
+    <div class="rest-list" id="recList"><div class="rest-empty">등록된 식당이 없어요</div></div>
+    <button class="mdb-close-btn" onclick="closeRecModal()" style="margin-top:0.6rem;">닫기</button>
   </div>
 </div>
+
+<!-- 숨김 파일 입력 (fav/rec 공용) -->
+<input type="file" id="restImgFileInput" accept="image/*" style="display:none;" onchange="handleRestImgUpload(this)">
 
 <!-- 메뉴 입력 모달 -->
 <div class="menu-modal-overlay" id="menuModal">
@@ -1324,9 +1330,6 @@
 <div class="img-viewer-overlay" id="imgViewer" onclick="this.classList.remove('show')">
   <img id="imgViewerImg" src="" alt="">
 </div>
-
-<!-- 숨김 파일 입력 -->
-<input type="file" id="favImgFileInput" accept="image/*" style="display:none;" onchange="handleFavImgUpload(this)">
 
 <div class="toast" id="toast"></div>
 
@@ -1498,11 +1501,11 @@
       renderCalendar();
       if (selectedDate) { renderSidebar(); renderMobilePanel(); }
       updateStats();
-      document.getElementById('syncDot').className = 'sync-dot';
-      document.getElementById('syncLabel').textContent = '연결됨';
+      
+      
     }, () => {
-      document.getElementById('syncDot').className = 'sync-dot off';
-      document.getElementById('syncLabel').textContent = '오류';
+      
+      
     });
     onValue(ref(db, 'jst_schedule'), (snap) => {
       const raw = snap.val() || {};
@@ -2517,148 +2520,197 @@
 
   document.getElementById('menuModal').addEventListener('click', function(e) { if(e.target===this) closeMenuModal(); });
 
-  // ── Favorite (즐겨찾는 식당) ──
-  let favData = {};       // { id: { name, phone, menu, images:[] } }
-  let _favImgTargetId = '';
+  // ── Favorite / 식당추천 공용 함수 ──
+  let favData = {};   // jst_favorites
+  let recData = {};   // jst_recommend
+  let _restImgTarget = { type: '', id: '' };
 
-  async function loadFavData() {
+  async function loadRestData(type) {
+    const key = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
     try {
-      const snap = await get(ref(db, 'jst_favorites'));
-      favData = snap.exists() ? (snap.val()||{}) : {};
-    } catch(e) { favData = {}; }
+      const snap = await get(ref(db, key));
+      const val = snap.exists() ? (snap.val()||{}) : {};
+      if (type === 'fav') favData = val; else recData = val;
+    } catch(e) {}
   }
 
+  function getRestData(type) { return type === 'fav' ? favData : recData; }
+  function setRestData(type, data) { if (type === 'fav') favData = data; else recData = data; }
+
   window.openFavModal = async function() {
-    await loadFavData();
-    toggleFavForm(false);
-    renderFavList();
+    await loadRestData('fav');
+    toggleRestForm('fav', false);
+    renderRestList('fav');
     document.getElementById('favModal').classList.add('show');
   };
-
   window.closeFavModal = function() { document.getElementById('favModal').classList.remove('show'); };
 
-  window.toggleFavForm = function(show) {
-    document.getElementById('favAddForm').style.display = show ? 'grid' : 'none';
-    document.getElementById('favAddToggleBtn').style.display = show ? 'none' : '';
+  window.openRecModal = async function() {
+    await loadRestData('rec');
+    toggleRestForm('rec', false);
+    renderRestList('rec');
+    document.getElementById('recModal').classList.add('show');
+  };
+  window.closeRecModal = function() { document.getElementById('recModal').classList.remove('show'); };
+
+  window.toggleRestForm = function(type, show) {
+    const formId = type === 'fav' ? 'favAddForm' : 'recAddForm';
+    const form = document.getElementById(formId);
     if (show) {
-      ['favInpName','favInpPhone','favInpMenu'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('favAddErr').textContent = '';
-      setTimeout(() => document.getElementById('favInpName').focus(), 100);
+      form.classList.add('open');
+      const n = document.getElementById(type === 'fav' ? 'favInpName' : 'recInpName');
+      if (n) { n.value = ''; setTimeout(() => n.focus(), 80); }
+      const p = document.getElementById(type === 'fav' ? 'favInpPhone' : 'recInpPhone');
+      if (p) p.value = '';
+      const m = document.getElementById(type === 'fav' ? 'favInpMenu' : 'recInpMenu');
+      if (m) m.value = '';
+      const e = document.getElementById(type === 'fav' ? 'favAddErr' : 'recAddErr');
+      if (e) e.textContent = '';
+    } else {
+      form.classList.remove('open');
     }
   };
 
-  window.saveFav = async function() {
-    const name  = document.getElementById('favInpName').value.trim();
-    const phone = document.getElementById('favInpPhone').value.trim();
-    const menu  = document.getElementById('favInpMenu').value.trim();
-    const errEl = document.getElementById('favAddErr');
+  window.saveRest = async function(type) {
+    const prefix = type === 'fav' ? 'fav' : 'rec';
+    const name  = document.getElementById(`${prefix}InpName`).value.trim();
+    const phone = document.getElementById(`${prefix}InpPhone`).value.trim();
+    const menu  = document.getElementById(`${prefix}InpMenu`).value.trim();
+    const errEl = document.getElementById(`${prefix}AddErr`);
     errEl.textContent = '';
     if (!name) { errEl.textContent = '식당명을 입력해주세요'; return; }
+    const dbKey = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
     try {
-      const id = 'fav_' + Date.now();
+      const id = (type === 'fav' ? 'fav_' : 'rec_') + Date.now();
       const obj = { name, phone: phone||'', menu: menu||'', images: [] };
-      await set(ref(db, `jst_favorites/${id}`), obj);
-      favData[id] = obj;
-      toggleFavForm(false);
-      renderFavList();
+      await set(ref(db, `${dbKey}/${id}`), obj);
+      const d = getRestData(type); d[id] = obj;
+      toggleRestForm(type, false);
+      renderRestList(type);
       showToast(`"${name}" 저장 완료 ✓`, 'success');
     } catch(e) { errEl.textContent = '저장 실패: '+e.message; }
   };
 
-  window.deleteFav = async function(id) {
-    if (!confirm(`"${favData[id]?.name}" 을 삭제할까요?`)) return;
-    await remove(ref(db, `jst_favorites/${id}`));
-    delete favData[id];
-    renderFavList();
+  window.deleteRest = async function(type, id) {
+    const d = getRestData(type);
+    if (!confirm(`"${d[id]?.name}" 을 삭제할까요?`)) return;
+    const dbKey = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
+    await remove(ref(db, `${dbKey}/${id}`));
+    delete d[id];
+    renderRestList(type);
     showToast('삭제됐어요');
   };
 
-  function renderFavList() {
-    const el = document.getElementById('favList');
-    const entries = Object.entries(favData);
-    if (entries.length === 0) { el.innerHTML = '<div class="rec-empty">등록된 식당이 없어요</div>'; return; }
+  function renderRestList(type) {
+    const listId = type === 'fav' ? 'favList' : 'recList';
+    const el = document.getElementById(listId);
+    const d = getRestData(type);
+    const entries = Object.entries(d);
+    if (entries.length === 0) {
+      el.innerHTML = '<div class="rest-empty">등록된 식당이 없어요</div>'; return;
+    }
     el.innerHTML = '';
-    entries.forEach(([id, fav]) => {
+    entries.forEach(([id, rest]) => {
+      const imgs = Array.isArray(rest.images) ? rest.images : Object.values(rest.images||{});
       const card = document.createElement('div');
-      card.className = 'fav-card';
+      card.className = 'rest-card';
 
-      // 상단 행
-      const top = document.createElement('div');
-      top.className = 'fav-card-top';
+      // 대표 이미지 or 플레이스홀더
+      if (imgs.length > 0) {
+        const img = document.createElement('img');
+        img.className = 'rest-card-img';
+        img.src = imgs[0];
+        img.onclick = () => openImgViewer(imgs[0]);
+        card.appendChild(img);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'rest-card-ph';
+        ph.textContent = '🍴';
+        card.appendChild(ph);
+      }
+
+      // 텍스트 정보
       const info = document.createElement('div');
-      info.className = 'fav-card-info';
-      info.innerHTML = `<div class="fav-card-name">🍴 ${fav.name}</div>
-        ${fav.menu ? `<div class="fav-card-sub">주메뉴: ${fav.menu}</div>` : ''}`;
-      top.appendChild(info);
-      if (fav.phone) {
-        const pBtn = document.createElement('button');
-        pBtn.className = 'fav-card-phone';
-        pBtn.textContent = '📞 ' + fav.phone;
-        pBtn.onclick = () => { window.location.href = `tel:${fav.phone.replace(/[^0-9]/g,'')}`; };
-        top.appendChild(pBtn);
+      info.className = 'rest-card-info';
+      info.innerHTML = `<div class="rest-card-name">${rest.name}</div>
+        ${rest.menu ? `<div class="rest-card-sub">📋 ${rest.menu}</div>` : ''}
+        ${rest.phone ? `<div class="rest-card-sub" style="color:#1565c0;">📞 ${rest.phone}</div>` : ''}`;
+      card.appendChild(info);
+
+      // 이미지 추가/삭제 버튼 (작게, 우측)
+      const imgWrap = document.createElement('div');
+      imgWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;align-items:center;flex-shrink:0;';
+      // 추가 사진들 (2번째부터, 최대 2장 더 표시)
+      imgs.slice(1, 3).forEach((src, si) => {
+        const w = document.createElement('div');
+        w.className = 'rest-thumb-wrap';
+        const tm = document.createElement('img');
+        tm.className = 'rest-thumb-sm';
+        tm.src = src;
+        tm.onclick = () => openImgViewer(src);
+        const db2 = document.createElement('button');
+        db2.className = 'rest-img-del';
+        db2.textContent = '✕';
+        db2.onclick = (e) => { e.stopPropagation(); deleteRestImg(type, id, si+1); };
+        w.appendChild(tm); w.appendChild(db2);
+        imgWrap.appendChild(w);
+      });
+      // 사진 추가 버튼
+      const addBtn = document.createElement('div');
+      addBtn.className = 'rest-img-add';
+      addBtn.textContent = '+';
+      addBtn.title = '사진 추가';
+      addBtn.onclick = () => { _restImgTarget = { type, id }; document.getElementById('restImgFileInput').click(); };
+      imgWrap.appendChild(addBtn);
+      card.appendChild(imgWrap);
+
+      // 액션 버튼 (전화/삭제)
+      const actions = document.createElement('div');
+      actions.className = 'rest-card-actions';
+      if (rest.phone) {
+        const callBtn = document.createElement('button');
+        callBtn.className = 'rest-card-call';
+        callBtn.textContent = '📞';
+        callBtn.onclick = () => { window.location.href = `tel:${rest.phone.replace(/[^0-9]/g,'')}`; };
+        actions.appendChild(callBtn);
       }
       const delBtn = document.createElement('button');
-      delBtn.className = 'fav-card-del';
+      delBtn.className = 'rest-card-del';
       delBtn.textContent = '삭제';
-      delBtn.onclick = () => deleteFav(id);
-      top.appendChild(delBtn);
-      card.appendChild(top);
+      delBtn.onclick = () => deleteRest(type, id);
+      actions.appendChild(delBtn);
+      card.appendChild(actions);
 
-      // 이미지 영역
-      const imgArea = document.createElement('div');
-      imgArea.className = 'fav-card-img-area';
-      const imgs = Array.isArray(fav.images) ? fav.images : Object.values(fav.images||{});
-      imgs.forEach((dataUrl, idx) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'fav-thumb-wrap';
-        const img = document.createElement('img');
-        img.className = 'fav-thumb';
-        img.src = dataUrl;
-        img.onclick = () => openImgViewer(dataUrl);
-        const dBtn = document.createElement('button');
-        dBtn.className = 'fav-img-del';
-        dBtn.textContent = '✕';
-        dBtn.onclick = (e) => { e.stopPropagation(); deleteFavImg(id, idx); };
-        wrap.appendChild(img); wrap.appendChild(dBtn);
-        imgArea.appendChild(wrap);
-      });
-      // 추가 버튼
-      const addImgBtn = document.createElement('div');
-      addImgBtn.className = 'fav-img-add-btn';
-      addImgBtn.textContent = '+';
-      addImgBtn.title = '사진 추가';
-      addImgBtn.onclick = () => { _favImgTargetId = id; document.getElementById('favImgFileInput').click(); };
-      imgArea.appendChild(addImgBtn);
-      card.appendChild(imgArea);
       el.appendChild(card);
     });
   }
 
-  window.handleFavImgUpload = async function(input) {
-    const file = input.files[0]; if (!file || !_favImgTargetId) return;
+  window.handleRestImgUpload = async function(input) {
+    const file = input.files[0]; if (!file || !_restImgTarget.id) return;
     input.value = '';
+    const { type, id } = _restImgTarget;
     const reader = new FileReader();
-    reader.onload = async (e) => {
-      // 이미지 압축 (Canvas)
+    reader.onload = (e) => {
       const img = new Image();
       img.onload = async () => {
         const MAX = 600;
         let w = img.width, h = img.height;
         if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
+          if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
+          else { w = Math.round(w*MAX/h); h = MAX; }
         }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-        const fav = favData[_favImgTargetId];
-        if (!fav) return;
-        const imgs = Array.isArray(fav.images) ? [...fav.images] : Object.values(fav.images||{});
+        const d = getRestData(type);
+        const rest = d[id]; if (!rest) return;
+        const imgs = Array.isArray(rest.images) ? [...rest.images] : Object.values(rest.images||{});
         imgs.push(dataUrl);
-        await set(ref(db, `jst_favorites/${_favImgTargetId}/images`), imgs);
-        favData[_favImgTargetId].images = imgs;
-        renderFavList();
+        const dbKey = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
+        await set(ref(db, `${dbKey}/${id}/images`), imgs);
+        d[id].images = imgs;
+        renderRestList(type);
         showToast('사진 저장 완료 ✓', 'success');
       };
       img.src = e.target.result;
@@ -2666,13 +2718,15 @@
     reader.readAsDataURL(file);
   };
 
-  window.deleteFavImg = async function(id, idx) {
-    const fav = favData[id]; if (!fav) return;
-    const imgs = Array.isArray(fav.images) ? [...fav.images] : Object.values(fav.images||{});
+  window.deleteRestImg = async function(type, id, idx) {
+    const d = getRestData(type);
+    const rest = d[id]; if (!rest) return;
+    const imgs = Array.isArray(rest.images) ? [...rest.images] : Object.values(rest.images||{});
     imgs.splice(idx, 1);
-    await set(ref(db, `jst_favorites/${id}/images`), imgs);
-    favData[id].images = imgs;
-    renderFavList();
+    const dbKey = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
+    await set(ref(db, `${dbKey}/${id}/images`), imgs);
+    d[id].images = imgs;
+    renderRestList(type);
   };
 
   function openImgViewer(src) {
@@ -2681,54 +2735,6 @@
   }
 
   document.getElementById('favModal').addEventListener('click', function(e) { if(e.target===this) closeFavModal(); });
-
-  // ── 식당 추천 모달 ──
-  window.openRecModal = async function() {
-    await loadFavData();
-    renderRecList();
-    document.getElementById('recModal').classList.add('show');
-  };
-
-  window.closeRecModal = function() { document.getElementById('recModal').classList.remove('show'); };
-
-  function renderRecList() {
-    const el = document.getElementById('recList');
-    const entries = Object.entries(favData);
-    if (entries.length === 0) {
-      el.innerHTML = '<div class="rec-empty">등록된 즐겨찾기 식당이 없어요<br><small style="margin-top:4px;display:block;">⭐ Favorite에서 먼저 등록해주세요</small></div>';
-      return;
-    }
-    el.innerHTML = '';
-    entries.forEach(([id, fav]) => {
-      const card = document.createElement('div');
-      card.className = 'rec-card';
-      // 대표 이미지
-      const imgs = Array.isArray(fav.images) ? fav.images : Object.values(fav.images||{});
-      if (imgs.length > 0) {
-        const img = document.createElement('img');
-        img.className = 'rec-card-img';
-        img.src = imgs[0];
-        card.appendChild(img);
-      } else {
-        const ph = document.createElement('div');
-        ph.className = 'rec-card-img-ph';
-        ph.textContent = '🍴';
-        card.appendChild(ph);
-      }
-      const info = document.createElement('div');
-      info.className = 'rec-card-info';
-      info.innerHTML = `<div class="rec-card-name">${fav.name}</div>
-        ${fav.menu ? `<div class="rec-card-menu">📋 ${fav.menu}</div>` : ''}
-        ${fav.phone ? `<div class="rec-card-phone">📞 ${fav.phone}</div>` : ''}`;
-      card.appendChild(info);
-      // 클릭 시 전화
-      if (fav.phone) {
-        card.onclick = () => { window.location.href = `tel:${fav.phone.replace(/[^0-9]/g,'')}`; };
-      }
-      el.appendChild(card);
-    });
-  }
-
   document.getElementById('recModal').addEventListener('click', function(e) { if(e.target===this) closeRecModal(); });
 
   // ── 달력 네비 ──
