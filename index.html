@@ -1338,7 +1338,7 @@
 </div>
 
 <!-- 숨김 파일 입력 (fav/rec 공용) -->
-<input type="file" id="restImgFileInput" accept="image/*" multiple style="display:none;" onchange="handleRestImgUpload(this)">
+<input type="file" id="restImgFileInput" accept="image/*" style="display:none;" onchange="handleRestImgUpload(this)">
 
 <!-- 메뉴 입력 모달 -->
 <div class="menu-modal-overlay" id="menuModal">
@@ -2669,12 +2669,6 @@
         img.title = '클릭하여 크게 보기';
         img.onclick = (e) => { e.stopPropagation(); openImgViewer(imgs[0]); };
         imgSlot.appendChild(img);
-        if (imgs.length > 1) {
-          const badge = document.createElement('div');
-          badge.style.cssText = 'position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.55);color:white;font-size:9px;font-weight:700;padding:1px 4px;border-radius:4px;pointer-events:none;';
-          badge.textContent = imgs.length + '장';
-          imgSlot.appendChild(badge);
-        }
       } else {
         const ph = document.createElement('div');
         ph.className = 'rest-card-ph';
@@ -2787,45 +2781,37 @@
   };
 
   window.handleRestImgUpload = async function(input) {
-    const files = Array.from(input.files);
-    if (!files.length || !_restImgTarget.id) return;
+    const file = input.files[0];
+    if (!file || !_restImgTarget.id) return;
     input.value = '';
     const { type, id } = _restImgTarget;
     const d = getRestData(type);
     const rest = d[id]; if (!rest) return;
     const dbKey = type === 'fav' ? 'jst_favorites' : 'jst_recommend';
-    const existingImgs = Array.isArray(rest.images) ? [...rest.images] : Object.values(rest.images||{});
 
-    // 모든 파일을 압축해서 최신순(선택역순)으로 앞에 추가
-    const newImgs = [];
-    for (const file of [...files].reverse()) {
-      await new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const MAX = 600;
-            let w = img.width, h = img.height;
-            if (w > MAX || h > MAX) {
-              if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
-              else { w = Math.round(w*MAX/h); h = MAX; }
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            newImgs.push(canvas.toDataURL('image/jpeg', 0.75));
-            resolve();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-    const merged = [...newImgs.reverse(), ...existingImgs];
-    await set(ref(db, `${dbKey}/${id}/images`), merged);
-    d[id].images = merged;
-    renderRestList(type);
-    showToast(`사진 ${files.length}장 저장 완료 ✓`, 'success');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        const MAX = 600;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
+          else { w = Math.round(w*MAX/h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        // 기존 사진 대체 (1장만 유지)
+        await set(ref(db, `${dbKey}/${id}/images`), [dataUrl]);
+        d[id].images = [dataUrl];
+        renderRestList(type);
+        showToast('사진 저장 완료 ✓', 'success');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   window.deleteRestImg = async function(type, id, idx) {
