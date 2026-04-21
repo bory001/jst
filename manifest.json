@@ -1,7 +1,7 @@
 {
-  "name": "전산팀 식사조사",
-  "short_name": "전산팀 식사조사",
-  "description": "보령시 전산팀 식사 참석 조사 시스템",
+  "name": "BR 식사조사",
+  "short_name": "BR 식사조사",
+  "description": "보령시청 식사 참석 조사 시스템",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

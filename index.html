@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-<title>전산팀 식사조사</title>
+<title>BR 식사조사</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a3a5c">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -961,7 +961,7 @@
     <div class="login-hero-content">
       <div class="login-title-row">
         <div class="login-icon" id="installIcon" onclick="triggerInstall()" title="앱 설치" style="cursor:pointer;">🍽️</div>
-        <div class="login-title">전산팀 식사조사</div>
+        <div class="login-title">BR 식사조사</div>
       </div>
       <div id="pwSubMsg" style="font-size:0.68rem;color:#ffffff;font-weight:700;letter-spacing:1px;min-height:16px;margin-bottom:4px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.8);"></div>
     </div>
@@ -970,7 +970,7 @@
     <div class="login-name-wrap">
       <label class="login-name-label" style="color:rgba(255,255,255,0.85);">소속</label>
       <input type="text" class="login-name-input" id="teamLoginInput"
-        placeholder="전산팀" maxlength="10" style="width:70px;"
+        placeholder="소속팀" maxlength="10" style="width:70px;"
         onkeydown="if(event.key==='Enter') this.blur()">
       <label class="login-name-label" style="color:rgba(255,255,255,0.85);">성명</label>
       <input type="text" class="login-name-input" id="nameLoginInput"
@@ -1014,8 +1014,8 @@
     <!-- 1행: 제목 + 기능 버튼 -->
     <div class="header-row1">
       <div class="header-left">
-        <h1>🍽️ 전산팀 식사조사</h1>
-        <div class="subtitle">(보령시 전산팀)</div>
+        <h1>🍽️ BR 식사조사</h1>
+        <div class="subtitle">(보령시청)</div>
       </div>
       <div class="header-right">
         <button class="hdr-btn hdr-attend-btn" id="hdrTimeBtn" onclick="openTimeModal()" style="display:none;">⏰ 시각등록</button>
@@ -1608,7 +1608,17 @@
     _lockBuf += n;
     updateDots();
     document.getElementById('loginError').textContent = '';
-    if (_lockBuf.length === 4) setTimeout(() => checkAndLogin(), 120);
+    if (_lockBuf.length === 4) {
+      setTimeout(async () => {
+        // 소속 기반 비번 먼저 로드 후 로그인 체크
+        const teamVal = document.getElementById('teamLoginInput').value.trim();
+        if (teamVal) {
+          currentTeam = teamVal;
+          await loadTeamPassword();
+        }
+        checkAndLogin();
+      }, 120);
+    }
   };
 
   window.lockDel = function() {
@@ -1671,14 +1681,22 @@
   }
 
   window.doLogout = function() {
-    window.close();
-    setTimeout(() => history.go(-(history.length)), 200);
+    // 상태 초기화
+    currentUser = null;
+    currentTeam = null;
+    currentPassword = '7777';
+    attendanceData = {}; scheduleData = {}; _absentData = {};
+    selectedDate = null; isAdminMode = false;
+    _lockBuf = ''; updateDots();
+    document.getElementById('loginError').textContent = '';
+    // 앱 숨기고 로그인 화면 표시
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
   };
 
   // ── Firebase 리스너 ──
   function startListening() {
     loadMemberData();
-    loadTeamPassword();
     const p = dbPrefix();
     onValue(ref(db, `${p}attendance`), (snap) => {
       attendanceData = snap.val() || {};
