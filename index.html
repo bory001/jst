@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>전산팀 식사조사</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a3a5c">
@@ -826,10 +826,15 @@
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
     pointer-events: none; z-index: 3;
-    font-size: 15px; font-weight: 900; color: #ef4444;
-    -webkit-text-stroke: 1px #ef4444;
+    font-size: 14px; font-weight: 900; color: #ef4444;
+    text-shadow: 0 0 3px white, 0 0 3px white;
+    background: transparent;
   }
-  .att-name-chip { position: relative; }
+  /* nameWrap은 칩과 동일 크기 */
+  .absent-chip-wrap {
+    position: relative; display: inline-block;
+    cursor: pointer;
+  }
   .absent-reason-chip {
     background: #fef2f2; border: 1px solid #fecaca;
     border-radius: 4px; padding: 2px 7px;
@@ -1787,13 +1792,13 @@
     // 불참자 표시
     const absentEntries = Object.entries(_absentData[selectedDate] || {});
     if (absentEntries.length > 0) {
-      html += `<div style="border-top:1px dashed #fecaca;margin-top:6px;padding-top:4px;font-size:10px;color:#dc2626;font-weight:700;margin-bottom:2px;">✕ 불참 ${absentEntries.length}명</div>`;
-      html += `<div class="att-row-list" style="width:100%;">`;
+      html += `<div class="att-row-list" style="width:100%;margin-top:4px;">`;
       absentEntries.forEach(([name, val]) => {
         const reason = val.reason || '';
-        html += `<div class="att-row-item" style="opacity:0.8;">
-          <div style="position:relative;display:inline-block;">
-            <div class="att-name-chip" style="background:#fef2f2;border-color:#fecaca;color:#dc2626;" data-name="${name}">${name}</div>
+        const isMineA = (name === currentUser);
+        html += `<div class="att-row-item">
+          <div class="absent-chip-wrap">
+            <div class="att-name-chip${isMineA ? ' mine' : ''}" data-name="${name}">${name}</div>
             <div class="absent-x">✕</div>
           </div>
           ${reason ? `<div class="absent-reason-chip">${reason}</div>` : ''}
@@ -1958,15 +1963,9 @@
     });
     attGrid.appendChild(rowList);
 
-    // ── 불참자 행 (구분선 + 1열) ──
+    // ── 불참자 행 (1열) ──
     const absentEntries = Object.entries(_absentData[selectedDate] || {});
     if (absentEntries.length > 0) {
-      // 구분선
-      const sep = document.createElement('div');
-      sep.style.cssText = 'width:100%;border-top:1px dashed #fecaca;margin:4px 0 2px;font-size:10px;color:#dc2626;font-weight:700;padding-top:3px;';
-      sep.textContent = '✕ 불참';
-      attGrid.appendChild(sep);
-
       const absentList = document.createElement('div');
       absentList.className = 'att-row-list';
       absentEntries.forEach(([name, val]) => {
@@ -1975,14 +1974,16 @@
 
         const row = document.createElement('div');
         row.className = 'att-row-item';
-        row.style.opacity = '0.75';
 
-        // 이름 칩 (X 오버레이)
+        // 이름 칩 + 빨간 X 오버레이
         const nameWrap = document.createElement('div');
-        nameWrap.style.cssText = 'position:relative;display:inline-block;';
+        nameWrap.className = 'absent-chip-wrap';
+        if (isMine) {
+          nameWrap.title = '클릭하여 불참 취소';
+          nameWrap.addEventListener('click', () => cancelAbsent());
+        }
         const nameChip = document.createElement('div');
-        nameChip.className = 'att-name-chip';
-        nameChip.style.cssText = 'background:#fef2f2;border-color:#fecaca;color:#dc2626;';
+        nameChip.className = 'att-name-chip' + (isMine ? ' mine' : '');
         nameChip.dataset.name = name;
         nameChip.textContent = name;
         const xBadge = document.createElement('div');
@@ -1998,13 +1999,6 @@
           rc.className = 'absent-reason-chip';
           rc.textContent = reason;
           row.appendChild(rc);
-        }
-
-        // 본인이면 클릭 → 불참취소
-        if (isMine) {
-          nameWrap.style.cursor = 'pointer';
-          nameWrap.title = '클릭하여 불참 취소';
-          nameWrap.addEventListener('click', () => cancelAbsent());
         }
 
         absentList.appendChild(row);
