@@ -662,6 +662,7 @@
     background: white; border-radius: 16px; padding: 1rem;
     width: 100%; max-width: 520px; margin: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
   }
   .rest-modal-title {
     font-size: 15px; font-weight: 800; color: var(--primary);
@@ -714,7 +715,7 @@
     border-radius: 8px; font-size: 13px; font-family: inherit; cursor: pointer; color: var(--text-muted);
   }
   /* 카드 목록 */
-  .rest-list { display: flex; flex-direction: column; gap: 4px; max-height: 520px; overflow-y: auto; }
+  .rest-list { display: flex; flex-direction: column; gap: 4px; }
   .rest-card {
     display: flex; align-items: center; gap: 6px;
     border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px;
@@ -846,7 +847,30 @@
   }
 
 
-  /* ── 불참 ── */
+  /* 즐겨찾기 공유 복사 선택 모드 */
+  .fav-copy-select-mode .rest-card-wrap {
+    cursor: pointer;
+  }
+  .fav-copy-select-mode .rest-card-wrap .rest-card {
+    transition: background 0.1s;
+  }
+  .fav-copy-select-mode .rest-card-wrap:hover .rest-card { background: #f0f9ff; }
+  .rest-card-wrap.fav-selected { background: #eff6ff !important; }
+  .rest-card-wrap.fav-selected .rest-card { background: #eff6ff !important; border-color: #3b82f6 !important; }
+  .fav-select-check {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid #cbd5e1;
+    background: white; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; transition: all 0.12s;
+  }
+  .fav-selected .fav-select-check { background: #3b82f6; border-color: #3b82f6; color: white; }
+  .fav-copy-mode-bar {
+    display: none; background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 7px 10px; margin-bottom: 6px;
+    font-size: 11px; font-weight: 700; color: #1d4ed8; align-items: center; gap: 8px;
+  }
+  .fav-copy-mode-bar.show { display: flex; }
+
+
   .absent-x {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
@@ -1440,7 +1464,15 @@
         <button class="rest-cancel-btn" onclick="toggleRestForm('fav',false)">취소</button>
       </div>
     </div>
+      <div id="favCopyModeBar" class="fav-copy-mode-bar">
+        ✋ 복사할 식당을 선택 후 아래 [복사 실행] 버튼을 누르세요
+        <button onclick="cancelFavCopyMode()" style="margin-left:auto;background:none;border:none;font-size:12px;color:#64748b;cursor:pointer;font-weight:700;">✖ 취소</button>
+      </div>
     <div class="rest-list" id="favList"><div class="rest-empty">등록된 항목이 없어요</div></div>
+    <div id="favCopyExecRow" style="display:none;gap:6px;margin-top:6px;display:none;">
+      <button onclick="execFavCopyToShared()" style="flex:1;padding:9px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">🌐 선택항목 공유로 복사</button>
+      <button onclick="cancelFavCopyMode()" style="padding:9px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;color:var(--text-muted);">취소</button>
+    </div>
     <button class="mdb-close-btn" onclick="closeFavModal()" style="margin-top:0.6rem;">닫기</button>
   </div>
 </div>
@@ -3079,20 +3111,71 @@
     btn.classList.add('active');
   };
 
-  // 즐겨찾기 → 공유로 전체 복사
-  window.copyFavToShared = async function() {
-    const entries = Object.entries(favData);
-    if (entries.length === 0) { showToast('즐겨찾기에 항목이 없어요', ''); return; }
+  // 즐겨찾기 → 공유 복사: 선택 모드 진입
+  let _favCopyMode = false;
+  let _favCopySelected = new Set();
+
+  window.copyFavToShared = function() {
+    _favCopyMode = true;
+    _favCopySelected = new Set();
+    // 추가 폼 닫기
+    toggleRestForm('fav', false);
+    // 안내 힌트 표시
+    const bar = document.getElementById('favCopyModeBar');
+    if (bar) bar.classList.add('show');
+    // 복사 실행 행 표시
+    const execRow = document.getElementById('favCopyExecRow');
+    if (execRow) execRow.style.display = 'flex';
+    // 기존 버튼들 숨김
+    document.getElementById('favAddToggleBtn').style.display = 'none';
+    renderRestList('fav');
+  };
+
+  window.cancelFavCopyMode = function() {
+    _favCopyMode = false;
+    _favCopySelected = new Set();
+    const bar = document.getElementById('favCopyModeBar');
+    if (bar) bar.classList.remove('show');
+    const execRow = document.getElementById('favCopyExecRow');
+    if (execRow) execRow.style.display = 'none';
+    document.getElementById('favAddToggleBtn').style.display = '';
+    renderRestList('fav');
+  };
+
+  window.toggleFavCopySelect = function(id) {
+    if (_favCopySelected.has(id)) _favCopySelected.delete(id);
+    else _favCopySelected.add(id);
+    // 선택 상태 시각 갱신
+    const wrap = document.getElementById(`favWrap_${id}`);
+    if (wrap) {
+      if (_favCopySelected.has(id)) wrap.classList.add('fav-selected');
+      else wrap.classList.remove('fav-selected');
+      const chk = wrap.querySelector('.fav-select-check');
+      if (chk) chk.textContent = _favCopySelected.has(id) ? '✓' : '';
+    }
+    // 버튼 텍스트 업데이트
+    const execRow = document.getElementById('favCopyExecRow');
+    if (execRow) {
+      const btn = execRow.querySelector('button');
+      if (btn) btn.textContent = `🌐 선택항목 공유로 복사 (${_favCopySelected.size}개)`;
+    }
+  };
+
+  window.execFavCopyToShared = async function() {
+    if (_favCopySelected.size === 0) { showToast('복사할 항목을 선택해주세요', ''); return; }
     let count = 0;
     try {
-      for (const [, rest] of entries) {
+      for (const id of _favCopySelected) {
+        const rest = favData[id];
+        if (!rest) continue;
         const newId = 'shared_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
         await set(ref(db, `${SHARED_FAV_KEY}/${newId}`), { ...rest });
         sharedFavData[newId] = { ...rest };
         count++;
-        await new Promise(r => setTimeout(r, 30)); // 충돌 방지
+        await new Promise(r => setTimeout(r, 30));
       }
       showToast(`${count}개 항목을 공유 즐겨찾기로 복사했어요 ✓`, 'success');
+      cancelFavCopyMode();
     } catch(e) { showToast('복사 실패: '+e.message, 'error'); }
   };
 
@@ -3272,6 +3355,15 @@
         wrap.onclick = () => moveRecToFav(id);
       }
 
+      // fav 복사 선택 모드: 체크박스 + 클릭 선택
+      if (type === 'fav' && _favCopyMode) {
+        wrap.id = `favWrap_${id}`;
+        wrap.classList.add('rest-card-wrap');
+        if (_favCopySelected.has(id)) wrap.classList.add('fav-selected');
+        wrap.style.cursor = 'pointer';
+        wrap.onclick = () => toggleFavCopySelect(id);
+      }
+
       // ── 메인 행 ──
       const card = document.createElement('div');
       card.className = 'rest-card';
@@ -3308,11 +3400,17 @@
         ${rest.phone ? `<div class="rest-card-sub" style="color:#1565c0;">📞 ${rest.phone}</div>` : ''}`;
       card.appendChild(info);
 
-      // ── 우측: + / 📞 / 수정 / 삭제 ──
+      // ── 우측: + / 📞 / 수정 / 삭제 (복사 선택 모드엔 체크만) ──
       const actions = document.createElement('div');
       actions.className = 'rest-card-actions';
 
-      const addImgBtn = document.createElement('div');
+      if (type === 'fav' && _favCopyMode) {
+        // 선택 모드: 체크 아이콘만
+        const chk = document.createElement('div');
+        chk.className = 'fav-select-check';
+        chk.textContent = _favCopySelected.has(id) ? '✓' : '';
+        actions.appendChild(chk);
+      } else {
       addImgBtn.className = 'rest-img-add';
       addImgBtn.textContent = '+';
       addImgBtn.title = '사진 추가';
@@ -3382,6 +3480,8 @@
       delBtn.textContent = '삭제';
       delBtn.onclick = () => deleteRest(type, id);
       actions.appendChild(delBtn);
+
+      } // end else (not fav copy mode)
 
       card.appendChild(actions);
       wrap.appendChild(card);
