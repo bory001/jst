@@ -2051,7 +2051,7 @@
     const leftCol = document.createElement('div');
     leftCol.style.cssText = 'display:flex;flex-direction:column;';
     const leftTitle = document.createElement('div');
-    leftTitle.style.cssText = 'font-size:10px;font-weight:700;color:#1a3a5c;padding:3px 6px 2px;border-bottom:1px solid #e8edf4;';
+    leftTitle.style.cssText = 'font-size:10px;font-weight:700;color:#1a3a5c;padding:3px 6px 2px;border-bottom:1px solid #e8edf4;text-align:center;';
     leftTitle.textContent = '참석자';
     leftCol.appendChild(leftTitle);
     sorted.forEach(([name, val]) => {
@@ -2110,7 +2110,7 @@
     const rightCol = document.createElement('div');
     rightCol.style.cssText = 'display:flex;flex-direction:column;';
     const rightTitle = document.createElement('div');
-    rightTitle.style.cssText = 'font-size:10px;font-weight:700;color:#b91c1c;padding:3px 6px 2px;border-bottom:1px solid #e8edf4;';
+    rightTitle.style.cssText = 'font-size:10px;font-weight:700;color:#b91c1c;padding:3px 6px 2px;border-bottom:1px solid #e8edf4;text-align:center;';
     rightTitle.textContent = '불참자';
     rightCol.appendChild(rightTitle);
     const absentEntries = Object.entries(_absentData[selectedDate] || {});
