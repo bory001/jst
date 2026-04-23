@@ -409,6 +409,106 @@
   .mdp-attend-btn.cancel { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
   .mdp-attend-btn.cancel:hover { background: #fee2e2; }
 
+  /* ── 재정관리 ── */
+  .finance-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 650; padding: 0.5rem; overflow-y: auto;
+  }
+  .finance-overlay.show { display: flex; }
+  .finance-box {
+    background: white; border-radius: 16px; padding: 1.2rem 1rem 1rem;
+    width: 100%; max-width: 520px; margin: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .finance-title {
+    font-size: 16px; font-weight: 800; color: var(--primary);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .finance-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+    margin-bottom: 0.75rem;
+  }
+  .finance-sum-box {
+    border-radius: 10px; padding: 8px 10px; text-align: center;
+    border: 1px solid var(--border);
+  }
+  .finance-sum-box.income { background: #f0fdf4; border-color: #86efac; }
+  .finance-sum-box.expense { background: #fef2f2; border-color: #fca5a5; }
+  .finance-sum-box.balance { background: #eff6ff; border-color: #93c5fd; }
+  .finance-sum-label { font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 3px; }
+  .finance-sum-amount { font-size: 15px; font-weight: 800; }
+  .finance-sum-box.income .finance-sum-amount { color: #16a34a; }
+  .finance-sum-box.expense .finance-sum-amount { color: #dc2626; }
+  .finance-sum-box.balance .finance-sum-amount { color: #1d4ed8; }
+  .finance-table-wrap { max-height: 55vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; }
+  .finance-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .finance-table th {
+    background: var(--primary); color: white; padding: 7px 8px;
+    text-align: center; font-size: 11px; font-weight: 700; position: sticky; top: 0; z-index: 1;
+  }
+  .finance-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
+  .finance-table tr:last-child td { border-bottom: none; }
+  .finance-table tr:nth-child(even) td { background: #f8fafc; }
+  .finance-income-badge { color: #16a34a; font-weight: 700; }
+  .finance-expense-badge { color: #dc2626; font-weight: 700; }
+  .finance-balance-plus { color: #1d4ed8; font-weight: 700; }
+  .finance-balance-minus { color: #dc2626; font-weight: 700; }
+  .finance-del-btn {
+    background: none; border: none; color: #dc2626; font-size: 13px;
+    cursor: pointer; padding: 2px 5px; border-radius: 4px;
+  }
+  .finance-del-btn:hover { background: #fef2f2; }
+  .finance-empty { text-align: center; color: var(--text-muted); padding: 2rem; font-size: 13px; }
+  /* 수입/지출 입력 팝업 */
+  .finance-input-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: flex-end; justify-content: center;
+    z-index: 800; padding-bottom: env(safe-area-inset-bottom,0);
+  }
+  .finance-input-overlay.show { display: flex; }
+  .finance-input-sheet {
+    background: white; border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px; padding: 1.2rem 1rem 1.5rem;
+    animation: slideUpSheet 0.22s ease;
+  }
+  .finance-input-title { font-size: 15px; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 1rem; }
+  .finance-type-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.75rem; }
+  .finance-type-btn {
+    padding: 10px; border-radius: 10px; border: 2px solid var(--border);
+    font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+    background: var(--bg); color: var(--text-muted); transition: all 0.15s;
+  }
+  .finance-type-btn.income.active { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
+  .finance-type-btn.expense.active { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
+  .finance-amount-input {
+    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 16px; font-family: inherit; outline: none;
+    margin-bottom: 8px; text-align: right;
+  }
+  .finance-amount-input:focus { border-color: var(--primary); }
+  .finance-memo-input {
+    width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 13px; font-family: inherit; outline: none;
+    margin-bottom: 0.75rem;
+  }
+  .finance-memo-input:focus { border-color: var(--primary); }
+  .finance-input-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .finance-save-btn {
+    padding: 12px; background: var(--primary); color: white; border: none;
+    border-radius: 12px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+  }
+  .finance-cancel-btn {
+    padding: 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; color: var(--text-muted);
+  }
+  /* 잔액 표시 (헤더 좌측) */
+  .header-balance {
+    font-size: 11px; font-weight: 700; color: #93c5fd;
+    padding-left: 18px; white-space: nowrap;
+  }
+
   /* ── 토스트 ── */
   .toast {
     position: fixed; bottom: 1.5rem; left: 50%;
@@ -1047,13 +1147,15 @@
     <div class="header-row1">
       <div class="header-left">
         <h1>🍽️ BR 식사조사</h1>
-        <div class="subtitle">(보령시청)</div>
+        <div class="subtitle" id="headerSubtitle">(보령시청)</div>
+        <div class="header-balance" id="headerBalance" style="display:none;"></div>
       </div>
       <div class="header-right">
         <button class="hdr-btn hdr-attend-btn" id="hdrTimeBtn" onclick="openTimeModal()" style="display:none;">⏰ 시각등록</button>
         <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
         <button class="hdr-btn" id="hdrAbsentBtn" onclick="openAbsentModal()" style="display:none;background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.6);">✕ 불참등록</button>
         <button class="hdr-btn" id="hdrPwBtn" onclick="openPwModal()" style="display:none;background:rgba(239,68,68,0.25);border-color:rgba(239,68,68,0.7);">🔑 비번변경</button>
+        <button class="hdr-btn" onclick="openFinanceModal()" style="background:rgba(29,78,216,0.25);border-color:rgba(29,78,216,0.6);">💰 재정</button>
         <button class="hdr-btn" onclick="openRankingModal()" style="background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.7);">🏆 통계</button>
         <button class="hdr-btn" id="adminModeBtn" onclick="openAdminAuth()" style="background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);">⚙️ 관리자</button>
         <button class="hdr-btn" onclick="doLogout()">나가기</button>
@@ -1569,6 +1671,9 @@
   let attPage = 0;
   const ATT_PAGE_SIZE = 20;
   let _timeModalMode = 'reg';
+  let _financeData = {};  // { 'YYYY-MM-DD': { id: { type, amount, memo, createdAt } } }
+  let _finInputDate = null;
+  let _finSelectedType = 'income';
   let memberData = {}; // 식당 연락처용으로 유지 (참석자 연락처 아님)
 
   const LOCAL_KEY = 'jst_user_name';
@@ -1728,7 +1833,7 @@
     currentUser = null;
     currentTeam = null;
     currentPassword = '7777';
-    attendanceData = {}; scheduleData = {}; _absentData = {};
+    attendanceData = {}; scheduleData = {}; _absentData = {}; _financeData = {};
     selectedDate = null; isAdminMode = false;
     _lockBuf = ''; updateDots();
     document.getElementById('loginError').textContent = '';
@@ -1761,6 +1866,11 @@
     onValue(ref(db, `${p}absent`), (snap) => {
       _absentData = snap.val() || {};
       if (selectedDate) { renderMobilePanel(); renderSidebar(); }
+    });
+    onValue(ref(db, `${p}finance`), (snap) => {
+      _financeData = snap.val() || {};
+      updateHeaderBalance();
+      if (document.getElementById('financeModal').classList.contains('show')) renderFinanceTable();
     });
   }
 
@@ -1817,7 +1927,12 @@
         if (bottom.children.length > 0) cell.appendChild(bottom);
       }
 
-      if (!isOther) cell.addEventListener('click', () => selectDate(key));
+      if (!isOther) {
+        cell.addEventListener('click', () => selectDate(key));
+        if (isAdminMode) {
+          setupLongPress(cell, () => openFinanceInput(key));
+        }
+      }
       grid.appendChild(cell);
     }
   }
@@ -2704,6 +2819,141 @@
     } catch(e) { errEl.textContent='저장 실패: '+e.message; }
   };
 
+  // ══════════════════════════════════════════
+  // ── 재정관리 ──
+  // ══════════════════════════════════════════
+
+  function formatMoney(n) {
+    return Number(n).toLocaleString('ko-KR') + '원';
+  }
+
+  function updateHeaderBalance() {
+    let total = 0;
+    Object.values(_financeData).forEach(dayEntries => {
+      Object.values(dayEntries).forEach(e => {
+        total += e.type === 'income' ? Number(e.amount) : -Number(e.amount);
+      });
+    });
+    const el = document.getElementById('headerBalance');
+    if (!el) return;
+    if (total === 0) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.style.color = total >= 0 ? '#93c5fd' : '#fca5a5';
+    el.textContent = `잔액 ${total >= 0 ? '' : '-'}${formatMoney(Math.abs(total))}`;
+  }
+
+  function renderFinanceTable() {
+    // 모든 항목 날짜순 정렬
+    const allEntries = [];
+    Object.entries(_financeData).forEach(([date, dayEntries]) => {
+      Object.entries(dayEntries).forEach(([id, e]) => {
+        allEntries.push({ date, id, ...e });
+      });
+    });
+    allEntries.sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt||0) - (b.createdAt||0));
+
+    // 합계
+    let totalIncome = 0, totalExpense = 0;
+    allEntries.forEach(e => {
+      if (e.type === 'income') totalIncome += Number(e.amount);
+      else totalExpense += Number(e.amount);
+    });
+    const totalBalance = totalIncome - totalExpense;
+
+    document.getElementById('finTotalIncome').textContent = formatMoney(totalIncome);
+    document.getElementById('finTotalExpense').textContent = formatMoney(totalExpense);
+    const balEl = document.getElementById('finTotalBalance');
+    balEl.textContent = formatMoney(Math.abs(totalBalance));
+    balEl.style.color = totalBalance >= 0 ? '#1d4ed8' : '#dc2626';
+
+    const tbody = document.getElementById('finTableBody');
+    if (allEntries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="finance-empty">등록된 내역이 없어요</td></tr>`;
+      return;
+    }
+
+    let runningBalance = 0;
+    tbody.innerHTML = allEntries.map(e => {
+      const amt = Number(e.amount);
+      runningBalance += e.type === 'income' ? amt : -amt;
+      const [y, m, d] = e.date.split('-');
+      const dateStr = `${y}.${m}.${d}`;
+      const typeLabel = e.type === 'income'
+        ? `<span class="finance-income-badge">수입</span>`
+        : `<span class="finance-expense-badge">지출</span>`;
+      const amtStr = e.type === 'income'
+        ? `<span class="finance-income-badge">+${formatMoney(amt)}</span>`
+        : `<span class="finance-expense-badge">-${formatMoney(amt)}</span>`;
+      const balStr = runningBalance >= 0
+        ? `<span class="finance-balance-plus">${formatMoney(runningBalance)}</span>`
+        : `<span class="finance-balance-minus">-${formatMoney(Math.abs(runningBalance))}</span>`;
+      const canDel = isAdminMode;
+      return `<tr>
+        <td>${dateStr}</td>
+        <td>${typeLabel}</td>
+        <td style="text-align:left;">${e.memo || ''}</td>
+        <td>${amtStr}</td>
+        <td>${balStr}</td>
+        <td>${canDel ? `<button class="finance-del-btn" onclick="deleteFinance('${e.date}','${e.id}')">✕</button>` : ''}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.openFinanceModal = function() {
+    renderFinanceTable();
+    document.getElementById('financeModal').classList.add('show');
+  };
+  window.closeFinanceModal = function() {
+    document.getElementById('financeModal').classList.remove('show');
+  };
+  document.getElementById('financeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFinanceModal();
+  });
+
+  window.openFinanceInput = function(dateKey) {
+    _finInputDate = dateKey;
+    _finSelectedType = 'income';
+    document.getElementById('finInputTitle').textContent = `💰 ${dateKey} 수입 / 지출 입력`;
+    document.getElementById('finAmount').value = '';
+    document.getElementById('finMemo').value = '';
+    document.getElementById('finTypeIncome').classList.add('active');
+    document.getElementById('finTypeExpense').classList.remove('active');
+    document.getElementById('financeInputSheet').classList.add('show');
+  };
+  window.closeFinanceInput = function() {
+    document.getElementById('financeInputSheet').classList.remove('show');
+  };
+  document.getElementById('financeInputSheet').addEventListener('click', function(e) {
+    if (e.target === this) closeFinanceInput();
+  });
+
+  window.selectFinType = function(type) {
+    _finSelectedType = type;
+    document.getElementById('finTypeIncome').classList.toggle('active', type === 'income');
+    document.getElementById('finTypeExpense').classList.toggle('active', type === 'expense');
+  };
+
+  window.saveFinance = async function() {
+    const amount = parseInt(document.getElementById('finAmount').value);
+    if (!amount || amount <= 0) { showToast('금액을 입력해주세요', 'error'); return; }
+    const memo = document.getElementById('finMemo').value.trim();
+    const id = 'f' + Date.now();
+    const entry = { type: _finSelectedType, amount, memo, createdAt: Date.now() };
+    try {
+      await set(ref(db, `${dbPrefix()}finance/${_finInputDate}/${id}`), entry);
+      closeFinanceInput();
+      showToast(`${_finSelectedType === 'income' ? '수입' : '지출'} ${formatMoney(amount)} 저장 완료`, 'success');
+    } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
+  };
+
+  window.deleteFinance = async function(date, id) {
+    if (!confirm('삭제할까요?')) return;
+    try {
+      await remove(ref(db, `${dbPrefix()}finance/${date}/${id}`));
+      showToast('삭제되었습니다');
+    } catch(e) { showToast('삭제 실패', 'error'); }
+  };
+
   // ── 롱프레스 ──
   function setupLongPress(el, callback) {
     let timer=null;
@@ -3550,6 +3800,61 @@
   });
 
 </script>
+
+<!-- 💰 재정관리 모달 -->
+<div class="finance-overlay" id="financeModal">
+  <div class="finance-box">
+    <div class="finance-title">
+      💰 재정 관리
+      <button onclick="closeFinanceModal()" style="background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div class="finance-summary">
+      <div class="finance-sum-box income">
+        <div class="finance-sum-label">총 수입</div>
+        <div class="finance-sum-amount" id="finTotalIncome">0원</div>
+      </div>
+      <div class="finance-sum-box expense">
+        <div class="finance-sum-label">총 지출</div>
+        <div class="finance-sum-amount" id="finTotalExpense">0원</div>
+      </div>
+      <div class="finance-sum-box balance">
+        <div class="finance-sum-label">잔액</div>
+        <div class="finance-sum-amount" id="finTotalBalance">0원</div>
+      </div>
+    </div>
+    <div class="finance-table-wrap">
+      <table class="finance-table">
+        <thead><tr>
+          <th style="width:80px;">날짜</th>
+          <th style="width:44px;">구분</th>
+          <th>메모</th>
+          <th style="width:80px;">금액</th>
+          <th style="width:70px;">잔액</th>
+          <th style="width:32px;"></th>
+        </tr></thead>
+        <tbody id="finTableBody"></tbody>
+      </table>
+    </div>
+    <button class="mdb-close-btn" onclick="closeFinanceModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 수입/지출 입력 시트 -->
+<div class="finance-input-overlay" id="financeInputSheet">
+  <div class="finance-input-sheet">
+    <div class="finance-input-title" id="finInputTitle">💰 수입 / 지출 입력</div>
+    <div class="finance-type-row">
+      <button class="finance-type-btn income active" id="finTypeIncome" onclick="selectFinType('income')">💚 수입</button>
+      <button class="finance-type-btn expense" id="finTypeExpense" onclick="selectFinType('expense')">❤️ 지출</button>
+    </div>
+    <input type="number" class="finance-amount-input" id="finAmount" placeholder="금액 입력" min="0">
+    <input type="text" class="finance-memo-input" id="finMemo" placeholder="메모 (선택)">
+    <div class="finance-input-btns">
+      <button class="finance-cancel-btn" onclick="closeFinanceInput()">취소</button>
+      <button class="finance-save-btn" onclick="saveFinance()">저장</button>
+    </div>
+  </div>
+</div>
 
 <!-- 비밀번호 변경 모달 -->
 <div class="modal-overlay" id="pwModal">
