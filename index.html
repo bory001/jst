@@ -146,7 +146,7 @@
     position: sticky; top: 0; z-index: 100;
   }
   .header-row1 { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 36px; }
-  .header-row2 { display: flex; align-items: center; gap: 4px; justify-content: space-between; flex-wrap: wrap; }
+  .header-row2 { display: flex; align-items: center; gap: 4px; justify-content: space-between; flex-wrap: nowrap; }
   .header-left h1 { font-size: 15px; font-weight: 700; white-space: nowrap; }
   .header-left .subtitle { font-size: 11px; opacity: 0.7; white-space: nowrap; padding-left: 18px; }
   .header-left { flex-shrink: 1; min-width: 0; overflow: visible; }
@@ -1180,7 +1180,7 @@
     <!-- 2행: Favorite + 식당추천 -->
     <div class="header-row2">
       <span id="headerBalance" style="display:none;font-size:11px;font-weight:700;color:#93c5fd;white-space:nowrap;"></span>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <div style="display:flex;gap:4px;flex-wrap:nowrap;flex-shrink:0;">
         <button class="hdr-btn" onclick="openFinanceModal()" style="background:rgba(29,78,216,0.25);border-color:rgba(29,78,216,0.6);">💰 재정내역</button>
         <button class="hdr-btn" onclick="openSharedFavModal()" style="background:rgba(255,140,0,0.2);border-color:rgba(255,140,0,0.7);color:white;">🌐 맛집(전체공유)</button>
         <button class="hdr-btn" onclick="openFavModal()" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.6);">⭐ 즐겨찾기</button>
