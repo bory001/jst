@@ -1049,6 +1049,7 @@
         <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
         <button class="hdr-btn" id="hdrAbsentBtn" onclick="openAbsentModal()" style="display:none;background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.6);">✕ 불참등록</button>
         <button class="hdr-btn" id="memberDbBtn" onclick="openMemberDb()" style="display:none;background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.7);">👥 회원DB</button>
+        <button class="hdr-btn" id="hdrPwBtn" onclick="openPwModal()" style="display:none;background:rgba(239,68,68,0.25);border-color:rgba(239,68,68,0.7);">🔑 비번변경</button>
         <button class="hdr-btn" onclick="openRankingModal()" style="background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.7);">🏆 통계</button>
         <button class="hdr-btn" id="adminModeBtn" onclick="openAdminAuth()" style="background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);">⚙️ 관리자</button>
         <button class="hdr-btn" onclick="doLogout()">나가기</button>
@@ -1756,6 +1757,10 @@
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
           document.getElementById('memberDbBtn').style.display = 'inline-block';
+          if (_lockBuf === ADMIN_PW) {
+            const pb = document.getElementById('hdrPwBtn');
+            if (pb) pb.style.display = 'inline-block';
+          }
           showToast('관리자 모드로 로그인', 'success');
         }, 400);
       }
@@ -2695,6 +2700,8 @@
       const btn = document.getElementById('adminModeBtn');
       if (btn) { btn.innerHTML = '⚙️ 관리자'; btn.style.background='rgba(255,165,0,0.2)'; btn.style.borderColor='rgba(255,165,0,0.5)'; }
       document.getElementById('memberDbBtn').style.display = 'none';
+      const pb = document.getElementById('hdrPwBtn');
+      if (pb) pb.style.display = 'none';
       const pRow = document.getElementById('pcAdminRow');
       if (pRow) pRow.style.display = 'none';
       const mRow = document.getElementById('mdpAdminRow');
@@ -2728,6 +2735,10 @@
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
           document.getElementById('memberDbBtn').style.display = 'inline-block';
+          if (_adminBuf === ADMIN_PW) {
+            const pb = document.getElementById('hdrPwBtn');
+            if (pb) pb.style.display = 'inline-block';
+          }
           if (selectedDate) { renderMobilePanel(); renderSidebar(); }
           showToast('관리자 모드 활성화', 'success');
         } else {
