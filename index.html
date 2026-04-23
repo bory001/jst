@@ -215,6 +215,8 @@
     border-radius: 6px; padding: 3px 3px 2px; cursor: pointer;
     transition: background 0.15s; display: flex; flex-direction: column;
     align-items: center; min-height: 0; border: 1px solid transparent;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
   }
   .day-cell:hover:not(.other-month) { background: #eef3fa; border-color: var(--border); }
   .day-cell.today { background: #eff6ff; border-color: #93c5fd; }
@@ -2956,12 +2958,25 @@
 
   // ── 롱프레스 ──
   function setupLongPress(el, callback) {
-    let timer=null;
-    const start=()=>{timer=setTimeout(()=>{callback();timer=null;},600);};
-    const cancel=()=>{if(timer){clearTimeout(timer);timer=null;}};
-    el.addEventListener('mousedown',start);el.addEventListener('touchstart',start,{passive:true});
-    el.addEventListener('mouseup',cancel);el.addEventListener('mouseleave',cancel);
-    el.addEventListener('touchend',cancel);el.addEventListener('touchcancel',cancel);
+    let timer = null;
+    let fired = false;
+    const start = (e) => {
+      fired = false;
+      timer = setTimeout(() => {
+        fired = true;
+        callback();
+        timer = null;
+      }, 600);
+    };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    const preventIfFired = (e) => { if (fired) { e.preventDefault(); fired = false; } };
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, { passive: false });
+    el.addEventListener('mouseup', cancel);
+    el.addEventListener('mouseleave', cancel);
+    el.addEventListener('touchend', cancel);
+    el.addEventListener('touchcancel', cancel);
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
   function showDateTooltip(el,msg){
