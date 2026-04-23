@@ -1735,6 +1735,7 @@
       _lockBuf = ''; updateDots(); return;
     }
     const _isAdmin = isAdminPw(_lockBuf);
+    const _enteredPw = _lockBuf; // 초기화 전에 미리 저장
     if (_lockBuf === currentPassword || _isAdmin) {
       localStorage.setItem(LOCAL_KEY, name);
       localStorage.setItem(LOCAL_TEAM_KEY, team);
@@ -1752,12 +1753,12 @@
       startListening();
       if (_isAdmin) {
         isAdminMode = true;
-        _adminEnteredPw = _lockBuf;
+        _adminEnteredPw = _enteredPw;
         setTimeout(() => {
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
           document.getElementById('memberDbBtn').style.display = 'inline-block';
-          if (_lockBuf === ADMIN_PW) {
+          if (_enteredPw === ADMIN_PW) {
             const pb = document.getElementById('hdrPwBtn');
             if (pb) pb.style.display = 'inline-block';
           }
