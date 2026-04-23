@@ -439,18 +439,20 @@
   .finance-sum-box.income { background: #f0fdf4; border-color: #86efac; }
   .finance-sum-box.expense { background: #fef2f2; border-color: #fca5a5; }
   .finance-sum-box.balance { background: #eff6ff; border-color: #93c5fd; }
-  .finance-sum-label { font-size: 9px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px; }
-  .finance-sum-amount { font-size: 11px; font-weight: 800; word-break: break-all; line-height: 1.3; }
+  .finance-sum-label { font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px; }
+  .finance-sum-amount { font-size: 12px; font-weight: 800; word-break: break-all; line-height: 1.3; }
   .finance-sum-box.income .finance-sum-amount { color: #16a34a; }
   .finance-sum-box.expense .finance-sum-amount { color: #dc2626; }
   .finance-sum-box.balance .finance-sum-amount { color: #1d4ed8; }
   .finance-table-wrap { max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem; }
-  .finance-table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
+  .finance-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
   .finance-table th {
     background: var(--primary); color: white; padding: 5px 2px;
-    text-align: center; font-size: 10px; font-weight: 700; position: sticky; top: 0; z-index: 1; white-space: nowrap;
+    text-align: center; font-size: 11px; font-weight: 700; position: sticky; top: 0; z-index: 1; white-space: nowrap;
   }
-  .finance-table td { padding: 5px 2px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .finance-table th.num-col { text-align: right; padding-right: 4px; }
+  .finance-table td { padding: 5px 2px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .finance-table td.num-col { text-align: right; padding-right: 6px; }
   .finance-table tr:last-child td { border-bottom: none; }
   .finance-table tr:nth-child(even) td { background: #f8fafc; }
   .finance-income-badge { color: #16a34a; font-weight: 700; }
@@ -2956,8 +2958,8 @@
         <td style="white-space:nowrap;">${dateStr}</td>
         <td>${typeLabel}</td>
         <td>${memo}</td>
-        <td>${amtStr}</td>
-        <td>${balStr}</td>
+        <td class="num-col">${amtStr}</td>
+        <td class="num-col">${balStr}</td>
         <td>${canDel ? `<button class="finance-del-btn" onclick="deleteFinance('${e.date}','${e.id}')">✕</button>` : ''}</td>
       </tr>`;
     }).join('');
@@ -4055,8 +4057,8 @@
           <th style="width:36px;">날짜</th>
           <th style="width:26px;">구분</th>
           <th style="width:52px;">내용</th>
-          <th style="width:76px;">금액</th>
-          <th style="width:76px;">잔액</th>
+          <th class="num-col" style="width:76px;">금액</th>
+          <th class="num-col" style="width:76px;">잔액</th>
           <th style="width:20px;"></th>
         </tr></thead>
         <tbody id="finTableBody"></tbody>
