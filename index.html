@@ -1131,7 +1131,7 @@
           <div class="att-empty"><span class="att-empty-icon">📅</span>날짜를 선택하면<br>참석자를 볼 수 있어요</div>
         </div>
         <!-- 관리자 버튼 (PC 사이드바) -->
-        <div id="pcAdminRow" style="display:none;padding:0.5rem 1.25rem 1rem;display:none;gap:6px;flex-wrap:wrap;">
+        <div id="pcAdminRow" style="display:none;padding:0.5rem 1.25rem 1rem;gap:6px;flex-wrap:wrap;">
           <button class="mdp-admin-btn blue" onclick="openScheduleModal()">📋 일정 추가</button>
           <button class="mdp-admin-btn green" onclick="togglePcManualForm()">👤 참석자 추가</button>
           <button class="mdp-admin-btn" onclick="openPwModal()" style="background:rgba(239,68,68,0.15);color:#b91c1c;border-color:#fca5a5;">🔑 비번변경</button>
@@ -1751,6 +1751,7 @@
       startListening();
       if (_isAdmin) {
         isAdminMode = true;
+        _adminEnteredPw = _lockBuf;
         setTimeout(() => {
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
