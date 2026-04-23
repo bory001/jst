@@ -499,7 +499,26 @@
     padding: 12px; background: var(--bg); border: 1px solid var(--border);
     border-radius: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; color: var(--text-muted);
   }
-  /* 잔액 표시 (헤더 좌측 - 별도 줄) */
+  .finance-period-row {
+    display: flex; gap: 5px; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;
+  }
+  .fin-period-btn {
+    padding: 4px 10px; border-radius: 14px; border: 1.5px solid var(--border);
+    font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer;
+    background: var(--bg); color: var(--text-muted); transition: all 0.15s; white-space: nowrap;
+  }
+  .fin-period-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .fin-period-sel {
+    padding: 4px 6px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 11px; font-family: inherit; color: var(--text); outline: none; background: var(--bg);
+  }
+  .fin-period-sel:focus { border-color: var(--primary); }
+  .finance-memo-input {
+    width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 13px; font-family: inherit; outline: none;
+    margin-bottom: 0.75rem;
+  }
+  .finance-memo-input:focus { border-color: var(--primary); }
   .header-balance {
     font-size: 11px; font-weight: 700; color: #93c5fd;
     padding-left: 2px; white-space: nowrap; margin-top: 1px;
@@ -1670,6 +1689,7 @@
   let _financeData = {};  // { 'YYYY-MM-DD': { id: { type, amount, memo, createdAt } } }
   let _finInputDate = null;
   let _finSelectedType = 'income';
+  let _finPeriod = 'all'; // 'all' | 'year' | 'month'
   let memberData = {}; // 식당 연락처용으로 유지 (참석자 연락처 아님)
 
   const LOCAL_KEY = 'jst_user_name';
@@ -2839,13 +2859,39 @@
   }
 
   function renderFinanceTable() {
-    // 모든 항목 날짜순 정렬
-    const allEntries = [];
+    // 기간 필터
+    const now = new Date();
+    const selYear = parseInt(document.getElementById('finSelYear')?.value || now.getFullYear());
+    const selMonth = parseInt(document.getElementById('finSelMonth')?.value || now.getMonth()+1);
+
+    // 연도 셀렉트 채우기
+    const yearSel = document.getElementById('finSelYear');
+    if (yearSel && yearSel.options.length === 0) {
+      const years = new Set([now.getFullYear()]);
+      Object.keys(_financeData).forEach(d => years.add(parseInt(d.slice(0,4))));
+      [...years].sort((a,b)=>b-a).forEach(y => {
+        const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; yearSel.appendChild(o);
+      });
+      yearSel.value = now.getFullYear();
+    }
+
+    let allEntries = [];
     Object.entries(_financeData).forEach(([date, dayEntries]) => {
       Object.entries(dayEntries).forEach(([id, e]) => {
         allEntries.push({ date, id, ...e });
       });
     });
+
+    // 기간 필터 적용
+    if (_finPeriod === 'year') {
+      allEntries = allEntries.filter(e => parseInt(e.date.slice(0,4)) === selYear);
+    } else if (_finPeriod === 'month') {
+      allEntries = allEntries.filter(e => {
+        const [y,m] = e.date.split('-');
+        return parseInt(y) === selYear && parseInt(m) === selMonth;
+      });
+    }
+
     allEntries.sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt||0) - (b.createdAt||0));
 
     // 합계
@@ -2859,7 +2905,7 @@
     document.getElementById('finTotalIncome').textContent = formatMoney(totalIncome);
     document.getElementById('finTotalExpense').textContent = formatMoney(totalExpense);
     const balEl = document.getElementById('finTotalBalance');
-    balEl.textContent = formatMoney(Math.abs(totalBalance));
+    balEl.textContent = (totalBalance < 0 ? '-' : '') + formatMoney(Math.abs(totalBalance));
     balEl.style.color = totalBalance >= 0 ? '#1d4ed8' : '#dc2626';
 
     const tbody = document.getElementById('finTableBody');
@@ -2868,12 +2914,13 @@
       return;
     }
 
+    // 전체 기간일 때만 누적잔액, 필터 시엔 해당 기간 내 누적
     let runningBalance = 0;
     tbody.innerHTML = allEntries.map(e => {
       const amt = Number(e.amount);
       runningBalance += e.type === 'income' ? amt : -amt;
       const [y, m, d] = e.date.split('-');
-      const dateStr = `${y}.${m}.${d}`;
+      const dateStr = `${m}.${d}`;
       const typeLabel = e.type === 'income'
         ? `<span class="finance-income-badge">수입</span>`
         : `<span class="finance-expense-badge">지출</span>`;
@@ -2883,10 +2930,12 @@
       const balStr = runningBalance >= 0
         ? `<span class="finance-balance-plus">${formatMoney(runningBalance)}</span>`
         : `<span class="finance-balance-minus">-${formatMoney(Math.abs(runningBalance))}</span>`;
+      const memo = e.memo || '';
       const canDel = isAdminMode;
       return `<tr>
-        <td>${dateStr}</td>
+        <td style="white-space:nowrap;">${dateStr}</td>
         <td>${typeLabel}</td>
+        <td style="text-align:left;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${memo}</td>
         <td>${amtStr}</td>
         <td>${balStr}</td>
         <td>${canDel ? `<button class="finance-del-btn" onclick="deleteFinance('${e.date}','${e.id}')">✕</button>` : ''}</td>
@@ -2894,7 +2943,25 @@
     }).join('');
   }
 
+  window.setFinPeriod = function(period, btn) {
+    _finPeriod = period;
+    document.querySelectorAll('.fin-period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const yearSel = document.getElementById('finSelYear');
+    const monthSel = document.getElementById('finSelMonth');
+    yearSel.style.display = (period === 'year' || period === 'month') ? '' : 'none';
+    monthSel.style.display = period === 'month' ? '' : 'none';
+    renderFinanceTable();
+  };
+
   window.openFinanceModal = function() {
+    _finPeriod = 'all';
+    document.querySelectorAll('.fin-period-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('finPeriodAll').classList.add('active');
+    document.getElementById('finSelYear').style.display = 'none';
+    document.getElementById('finSelMonth').style.display = 'none';
+    // 연도 셀렉트 초기화 (매번 다시 채우기)
+    document.getElementById('finSelYear').innerHTML = '';
     renderFinanceTable();
     document.getElementById('financeModal').classList.add('show');
   };
@@ -2910,6 +2977,7 @@
     _finSelectedType = 'income';
     document.getElementById('finInputTitle').textContent = `💰 ${dateKey} 수입 / 지출 입력`;
     document.getElementById('finAmount').value = '';
+    document.getElementById('finMemo').value = '';
     document.getElementById('finTypeIncome').classList.add('active');
     document.getElementById('finTypeExpense').classList.remove('active');
     document.getElementById('financeInputSheet').classList.add('show');
@@ -2936,8 +3004,10 @@
     const rawStr = document.getElementById('finAmount').value.replace(/[^0-9]/g, '');
     const amount = parseInt(rawStr);
     if (!amount || amount <= 0) { showToast('금액을 입력해주세요', 'error'); return; }
+    const memo = document.getElementById('finMemo').value.trim();
     const id = 'f' + Date.now();
     const entry = { type: _finSelectedType, amount, createdAt: Date.now() };
+    if (memo) entry.memo = memo;
     try {
       await set(ref(db, `${dbPrefix()}finance/${_finInputDate}/${id}`), entry);
       closeFinanceInput();
@@ -3820,6 +3890,19 @@
       💰 재정 관리
       <button onclick="closeFinanceModal()" style="background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;line-height:1;">✕</button>
     </div>
+    <!-- 기간 필터 -->
+    <div class="finance-period-row">
+      <button class="fin-period-btn active" id="finPeriodAll" onclick="setFinPeriod('all',this)">전체</button>
+      <button class="fin-period-btn" id="finPeriodYear" onclick="setFinPeriod('year',this)">연간</button>
+      <button class="fin-period-btn" id="finPeriodMonth" onclick="setFinPeriod('month',this)">월간</button>
+      <select class="fin-period-sel" id="finSelYear" onchange="renderFinanceTable()" style="display:none;"></select>
+      <select class="fin-period-sel" id="finSelMonth" onchange="renderFinanceTable()" style="display:none;">
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
     <div class="finance-summary">
       <div class="finance-sum-box income">
         <div class="finance-sum-label">총 수입</div>
@@ -3837,11 +3920,12 @@
     <div class="finance-table-wrap">
       <table class="finance-table">
         <thead><tr>
-          <th style="width:72px;">날짜</th>
-          <th style="width:36px;">구분</th>
-          <th style="width:80px;">금액</th>
-          <th style="width:80px;">잔액</th>
-          <th style="width:28px;"></th>
+          <th style="width:58px;">날짜</th>
+          <th style="width:30px;">구분</th>
+          <th style="min-width:40px;">내용</th>
+          <th style="width:70px;">금액</th>
+          <th style="width:70px;">잔액</th>
+          <th style="width:24px;"></th>
         </tr></thead>
         <tbody id="finTableBody"></tbody>
       </table>
@@ -3859,6 +3943,7 @@
       <button class="finance-type-btn expense" id="finTypeExpense" onclick="selectFinType('expense')">❤️ 지출</button>
     </div>
     <input type="text" inputmode="numeric" class="finance-amount-input" id="finAmount" placeholder="0" oninput="formatFinAmountInput(this)">
+    <input type="text" class="finance-memo-input" id="finMemo" placeholder="내용 입력 (선택)" maxlength="20">
     <div class="finance-input-btns">
       <button class="finance-cancel-btn" onclick="closeFinanceInput()">취소</button>
       <button class="finance-save-btn" onclick="saveFinance()">저장</button>
