@@ -386,18 +386,18 @@
   /* ── 모바일 하단 패널 ── */
   .mobile-day-panel {
     display: none; background: var(--surface);
-    border-top: 2px solid var(--primary); padding: 0.5rem 0.5rem 0.5rem;
+    border-top: 2px solid var(--primary); padding: 0.3rem 0.5rem 0.3rem;
     animation: slideDown 0.2s ease;
     border-radius: 0 0 12px 12px;
   }
   @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-  .mdp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+  .mdp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.15rem; }
   .mdp-date { font-size: 15px; font-weight: 700; color: var(--primary); }
   .mdp-att-count {
     font-size: 12px; background: var(--accent-light); color: #065f46;
     border-radius: 20px; padding: 3px 10px; font-weight: 700;
   }
-  .mdp-att-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.4rem; }
+  .mdp-att-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.2rem; }
   .mdp-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 0.75rem 0 1rem; }
   .mdp-attend-btn {
     width: 100%; padding: 12px; border: none; border-radius: 10px;
@@ -944,7 +944,7 @@
   /* ── 일정 정보 배지 (달력 셀 아래, 참석현황) ── */
   .sched-info-bar {
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-    font-size: 11px; color: var(--text-muted); margin: 0 0 3px;
+    font-size: 11px; color: var(--text-muted); margin: 0 0 1px;
     padding: 5px 8px; background: #f0f7ff; border-radius: 8px; border: 1px solid #c8dff7;
   }
   .sched-info-chip {
@@ -1087,7 +1087,7 @@
       <!-- 모바일 하단 패널 -->
       <div class="mobile-day-panel" id="mobileDayPanel">
         <div class="mdp-header">
-          <div style="display:flex;flex-direction:column;gap:2px;width:100%;">
+          <div style="display:flex;flex-direction:column;gap:1px;width:100%;">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               <div class="mdp-date" id="mdpDate">날짜를 선택하세요</div>
               <div class="mdp-att-count" id="mdpAttCount" style="display:none;"></div>
@@ -2051,7 +2051,7 @@
     const leftCol = document.createElement('div');
     leftCol.style.cssText = 'display:flex;flex-direction:column;';
     const leftTitle = document.createElement('div');
-    leftTitle.style.cssText = 'font-size:10px;font-weight:700;color:var(--text-muted);padding:3px 6px 2px;border-bottom:1px solid #e8edf4;';
+    leftTitle.style.cssText = 'font-size:10px;font-weight:700;color:#1a3a5c;padding:3px 6px 2px;border-bottom:1px solid #e8edf4;';
     leftTitle.textContent = '참석자';
     leftCol.appendChild(leftTitle);
     sorted.forEach(([name, val]) => {
