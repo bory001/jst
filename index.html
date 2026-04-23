@@ -816,12 +816,17 @@
   .menu-modal-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 1rem; text-align: center; }
 
   /* ── 참석자 1열 목록 (메뉴칩 포함) ── */
-  .att-row-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
+  .att-row-list {
+    display: grid; grid-template-columns: 1fr 1px 1fr;
+    width: 100%; border-top: 1px solid #e8edf4;
+  }
+  .att-row-list-divider {
+    background: #e8edf4; width: 1px; grid-row: 1 / 9999;
+  }
   .att-row-item {
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    padding: 2px 2px;
+    padding: 2px 6px;
   }
-  .att-row-item + .att-row-item { border-top: 1px solid #f0f4f8; }
   .att-menu-chip {
     background: #fff8e1; border: 1px solid #ffe082;
     border-radius: 4px; padding: 2px 7px;
@@ -1048,7 +1053,6 @@
         <button class="hdr-btn hdr-attend-btn" id="hdrTimeBtn" onclick="openTimeModal()" style="display:none;">⏰ 시각등록</button>
         <button class="hdr-btn hdr-attend-btn" id="hdrAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
         <button class="hdr-btn" id="hdrAbsentBtn" onclick="openAbsentModal()" style="display:none;background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.6);">✕ 불참등록</button>
-        <button class="hdr-btn" id="memberDbBtn" onclick="openMemberDb()" style="display:none;background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.7);">👥 회원DB</button>
         <button class="hdr-btn" id="hdrPwBtn" onclick="openPwModal()" style="display:none;background:rgba(239,68,68,0.25);border-color:rgba(239,68,68,0.7);">🔑 비번변경</button>
         <button class="hdr-btn" onclick="openRankingModal()" style="background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.7);">🏆 통계</button>
         <button class="hdr-btn" id="adminModeBtn" onclick="openAdminAuth()" style="background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);">⚙️ 관리자</button>
@@ -1102,7 +1106,7 @@
         <div class="mdp-att-grid" id="mdpAttGrid">
           <div class="mdp-empty">날짜를 선택해 주세요</div>
         </div>
-        <div class="long-press-hint" id="mdpChipHint" style="display:none;">이름 클릭 → 전화/문자 선택 | 길게 누르면 등록시각 조회</div>
+        <div class="long-press-hint" id="mdpChipHint" style="display:none;">길게 누르면 등록시각 조회</div>
         <button class="mdp-attend-btn register" id="mdpAttendBtn" onclick="toggleAttendanceMobile()" style="display:none;">✅ 참석 등록</button>
         <!-- 수동 참석 추가 폼 -->
         <div class="mdp-manual-form" id="mdpManualForm">
@@ -1296,53 +1300,6 @@
   </div>
 </div>
 
-<!-- 회원DB 모달 -->
-<div class="memberdb-overlay" id="memberDbModal">
-  <div class="memberdb-box">
-    <div class="memberdb-title">👥 회원 DB 관리</div>
-    <div class="mdb-tabs">
-      <button class="mdb-tab active" id="mdbTab1" onclick="switchMdbTab('single')">✏️ 개별입력</button>
-      <button class="mdb-tab" id="mdbTab2" onclick="switchMdbTab('paste')">📋 일괄입력</button>
-      <button class="mdb-tab" id="mdbTab3" onclick="switchMdbTab('excel')">📊 엑셀업로드</button>
-    </div>
-    <div id="mdbPanelSingle">
-      <div class="mdb-err" id="mdbSingleErr"></div>
-      <div class="mdb-input-row">
-        <input class="mdb-input" id="mdbSingleName" placeholder="이름" maxlength="10">
-        <input class="mdb-input" id="mdbSinglePhone" placeholder="연락처 (010-0000-0000)" maxlength="13"
-          oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
-        <button class="mdb-add-btn" onclick="mdbAddSingle()">추가</button>
-      </div>
-    </div>
-    <div id="mdbPanelPaste" style="display:none;">
-      <div class="mdb-paste-hint">• 한 줄에 <b>이름, 연락처</b> 형식으로 입력<br>• 예) <code>홍길동 010-1234-5678</code></div>
-      <textarea class="mdb-paste-area" id="mdbPasteArea" placeholder="홍길동 010-1234-5678&#10;김철수 010-9876-5432"></textarea>
-      <div class="mdb-err" id="mdbPasteErr"></div>
-      <div class="mdb-btn-row"><button class="mdb-paste-btn" onclick="mdbAddPaste()">📋 등록</button></div>
-    </div>
-    <div id="mdbPanelExcel" style="display:none;">
-      <div class="mdb-paste-hint">• 엑셀 1열: <b>이름</b>, 2열: <b>연락처</b><br>• .xlsx / .xls / .csv 지원</div>
-      <div class="mdb-err" id="mdbExcelErr"></div>
-      <div class="mdb-btn-row">
-        <button class="mdb-upload-btn" onclick="document.getElementById('mdbFileInput').click()">📊 파일 선택</button>
-        <span id="mdbFileName" style="font-size:12px;color:var(--text-muted);align-self:center;"></span>
-      </div>
-      <input type="file" id="mdbFileInput" accept=".xlsx,.xls,.csv" onchange="mdbHandleFile(this)">
-    </div>
-    <div style="margin-top:0.75rem;">
-      <div class="mdb-count" id="mdbCount">총 0명</div>
-      <input class="mdb-search" id="mdbSearch" placeholder="🔍 이름 또는 연락처 검색" oninput="renderMdbList()">
-      <div class="mdb-list-wrap">
-        <table class="mdb-table">
-          <thead><tr><th>이름</th><th>연락처</th><th>삭제</th></tr></thead>
-          <tbody id="mdbTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <button class="mdb-close-btn" onclick="closeMemberDb()">닫기</button>
-  </div>
-</div>
-
 <!-- 시각등록 모달 -->
 <div class="time-modal-overlay" id="timeModal">
   <div class="time-modal-box">
@@ -1369,20 +1326,6 @@
 </div>
 
 <!-- 연락처 액션 팝업 -->
-<div class="contact-popup-overlay" id="contactPopup" onclick="closeContactPopup(event)">
-  <div class="contact-popup">
-    <div class="contact-popup-name" id="contactPopupName"></div>
-    <div class="contact-popup-btns">
-      <button class="contact-action-btn call" onclick="doContactAction('call')">
-        <span class="ca-icon">📞</span>전화하기
-      </button>
-      <button class="contact-action-btn sms" onclick="doContactAction('sms')">
-        <span class="ca-icon">💬</span>문자보내기
-      </button>
-    </div>
-    <button class="contact-popup-cancel" onclick="closeContactPopup()">취소</button>
-  </div>
-</div>
 
 <!-- 🌐 맛집(전체공유) 모달 -->
 <div class="rest-modal-overlay" id="sharedFavModal">
@@ -1626,7 +1569,7 @@
   let attPage = 0;
   const ATT_PAGE_SIZE = 20;
   let _timeModalMode = 'reg';
-  let memberData = {};
+  let memberData = {}; // 식당 연락처용으로 유지 (참석자 연락처 아님)
 
   const LOCAL_KEY = 'jst_user_name';
   const LOCAL_TEAM_KEY = 'jst_user_team';
@@ -1765,7 +1708,6 @@
         setTimeout(() => {
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
-          document.getElementById('memberDbBtn').style.display = 'inline-block';
           if (_enteredPw === ADMIN_PW) {
             const pb = document.getElementById('hdrPwBtn');
             if (pb) pb.style.display = 'inline-block';
@@ -1797,7 +1739,6 @@
 
   // ── Firebase 리스너 ──
   function startListening() {
-    loadMemberData();
     const p = dbPrefix();
     onValue(ref(db, `${p}attendance`), (snap) => {
       attendanceData = snap.val() || {};
@@ -1975,7 +1916,7 @@
         <button class="att-page-btn" ${attPage>=totalPages-1?'disabled':''} onclick="changeAttPage(1)">▶</button>
       </div>`;
     }
-    html += `<div class="long-press-hint">이름 클릭 → 전화/문자 선택</div>`;
+    html += `<div class="long-press-hint">길게 누르면 등록시각 조회</div>`;
 
     // 불참자 표시
     const absentEntries = Object.entries(_absentData[selectedDate] || {});
@@ -2102,10 +2043,19 @@
     attGrid.innerHTML = '';
     attGrid.style.cssText = 'width:100%;';
 
-    // 1열 목록 (등록순)
+    // 2열 좌우 배치 (등록순)
     const rowList = document.createElement('div');
     rowList.className = 'att-row-list';
-    sorted.forEach(([name, val]) => {
+    // 가운데 세로 구분선 (grid 2번째 열)
+    const divider = document.createElement('div');
+    divider.className = 'att-row-list-divider';
+
+    const leftCol = document.createElement('div');
+    leftCol.style.cssText = 'display:flex;flex-direction:column;';
+    const rightCol = document.createElement('div');
+    rightCol.style.cssText = 'display:flex;flex-direction:column;';
+
+    sorted.forEach(([name, val], idx) => {
       const isMine = (name === currentUser);
       const arrTime = val.arrivalTime || '';
       const menu = val.menu || '';
@@ -2148,24 +2098,39 @@
         row.appendChild(addBtn);
       }
 
-      // 이름칩 클릭
-      nameChip.addEventListener('click', () => handleChipTap(name, nameChip));
+      // 이름칩 클릭 - 연락처 기능 제거, 롱프레스만 유지
       setupLongPress(nameChip, () => {
         const dt = val.registeredAt ? new Date(val.registeredAt) : null;
         const msg = dt ? `등록: ${dt.getMonth()+1}.${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '등록일시 없음';
         showDateTooltip(nameChip, msg);
       });
+      // 관리자 모드 클릭 선택
+      if (isAdminMode) {
+        nameChip.addEventListener('click', () => handleChipTap(name, nameChip));
+      }
 
-      rowList.appendChild(row);
+      if (idx % 2 === 0) leftCol.appendChild(row);
+      else rightCol.appendChild(row);
     });
+
+    rowList.appendChild(leftCol);
+    rowList.appendChild(divider);
+    rowList.appendChild(rightCol);
     attGrid.appendChild(rowList);
 
-    // ── 불참자 행 (1열) ──
+    // ── 불참자 행 (2열) ──
     const absentEntries = Object.entries(_absentData[selectedDate] || {});
     if (absentEntries.length > 0) {
       const absentList = document.createElement('div');
       absentList.className = 'att-row-list';
-      absentEntries.forEach(([name, val]) => {
+      const absentDivider = document.createElement('div');
+      absentDivider.className = 'att-row-list-divider';
+      const absentLeft = document.createElement('div');
+      absentLeft.style.cssText = 'display:flex;flex-direction:column;';
+      const absentRight = document.createElement('div');
+      absentRight.style.cssText = 'display:flex;flex-direction:column;';
+
+      absentEntries.forEach(([name, val], idx) => {
         const isMine = (name === currentUser);
         const reason = val.reason || '';
 
@@ -2193,7 +2158,6 @@
         nameWrap.appendChild(xBadge);
         row.appendChild(nameWrap);
 
-        // 불참 사유 칩
         if (reason) {
           const rc = document.createElement('div');
           rc.className = 'absent-reason-chip';
@@ -2201,16 +2165,17 @@
           row.appendChild(rc);
         }
 
-        absentList.appendChild(row);
+        if (idx % 2 === 0) absentLeft.appendChild(row);
+        else absentRight.appendChild(row);
       });
+      absentList.appendChild(absentLeft);
+      absentList.appendChild(absentDivider);
+      absentList.appendChild(absentRight);
       attGrid.appendChild(absentList);
     }
   }
 
   // ── 칩 탭 핸들러 ──
-  // ── 연락처 팝업 상태 ──
-  let _contactPhone = '';
-
   function handleChipTap(name, chipEl) {
     if (isAdminMode) {
       document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
@@ -2219,7 +2184,7 @@
         _adminSelectedAbsent = false;
       } else {
         _adminSelectedName = name;
-        _adminSelectedAbsent = false; // 참석자 칩은 false
+        _adminSelectedAbsent = false;
         const el = chipEl || document.querySelector(`.att-name-chip[data-name="${name}"]`);
         if (el) el.style.outline = '2px solid #ef4444';
       }
@@ -2228,18 +2193,7 @@
       return;
     }
     // 본인이면 메뉴 입력
-    if (name === currentUser) {
-      openMenuModal(name);
-      return;
-    }
-    const phone = memberData[name];
-    if (phone) {
-      _contactPhone = phone.replace(/[^0-9]/g, '');
-      document.getElementById('contactPopupName').textContent = `📋 ${name}`;
-      document.getElementById('contactPopup').classList.add('show');
-    } else {
-      showToast(`"${name}" 님의 연락처가 없어요`, '');
-    }
+    if (name === currentUser) openMenuModal(name);
   }
 
   // ── 불참자 칩 탭 핸들러 (관리자 전용) ──
@@ -2257,23 +2211,6 @@
     const hb = document.getElementById('hdrAttendBtn');
     if (hb) hb.innerHTML = _adminSelectedName ? `✕ ${_adminSelectedName} 불참해제` : '❌ 참석 취소';
   }
-
-  window.closeContactPopup = function(e) {
-    if (e && e.target !== document.getElementById('contactPopup')) return;
-    document.getElementById('contactPopup').classList.remove('show');
-    _contactPhone = '';
-  };
-
-  window.doContactAction = function(type) {
-    document.getElementById('contactPopup').classList.remove('show');
-    if (!_contactPhone) return;
-    if (type === 'call') {
-      window.location.href = `tel:${_contactPhone}`;
-    } else {
-      window.location.href = `sms:${_contactPhone}`;
-    }
-    _contactPhone = '';
-  };
 
   // ── 참석 등록/취소 ──
   // ── 오늘 날짜 키 ──
@@ -2708,7 +2645,6 @@
       document.querySelectorAll('.att-name-chip').forEach(c => c.style.outline = '');
       const btn = document.getElementById('adminModeBtn');
       if (btn) { btn.innerHTML = '⚙️ 관리자'; btn.style.background='rgba(255,165,0,0.2)'; btn.style.borderColor='rgba(255,165,0,0.5)'; }
-      document.getElementById('memberDbBtn').style.display = 'none';
       const pb = document.getElementById('hdrPwBtn');
       if (pb) pb.style.display = 'none';
       const pRow = document.getElementById('pcAdminRow');
@@ -2743,7 +2679,6 @@
           closeAdminAuth();
           const btn = document.getElementById('adminModeBtn');
           if (btn) { btn.innerHTML='⚙️ 관리중'; btn.style.background='rgba(255,100,0,0.4)'; btn.style.borderColor='rgba(255,100,0,0.8)'; }
-          document.getElementById('memberDbBtn').style.display = 'inline-block';
           if (_adminBuf === ADMIN_PW) {
             const pb = document.getElementById('hdrPwBtn');
             if (pb) pb.style.display = 'inline-block';
@@ -2788,129 +2723,6 @@
       showToast('사용자 비밀번호가 변경되었어요! ✓','success');
     } catch(e) { errEl.textContent='저장 실패: '+e.message; }
   };
-
-  // ── 회원DB ──
-  async function loadMemberData() {
-    try {
-      const snap = await get(ref(db,`${dbPrefix()}members`));
-      memberData = snap.exists() ? (snap.val()||{}) : {};
-    } catch(e) { memberData={}; }
-  }
-
-  window.openMemberDb = async function() {
-    await loadMemberData();
-    renderMdbList();
-    switchMdbTab('single');
-    document.getElementById('memberDbModal').classList.add('show');
-  };
-  window.closeMemberDb = function() { document.getElementById('memberDbModal').classList.remove('show'); };
-
-  window.switchMdbTab = function(tab) {
-    ['single','paste','excel'].forEach(t => {
-      document.getElementById('mdbPanel'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'':'none';
-      document.getElementById('mdbTab'+({'single':1,'paste':2,'excel':3}[t])).classList.toggle('active',t===tab);
-    });
-  };
-
-  function normalizePhone(raw) {
-    const d=raw.replace(/[^0-9]/g,'');
-    if(d.length===11) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
-    if(d.length===10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
-    return raw.trim();
-  }
-
-  async function saveMember(name, phone) {
-    const n=name.trim(), p=normalizePhone(phone);
-    if(!n) return '이름을 입력해주세요';
-    if(!/^01[0-9]-\d{3,4}-\d{4}$/.test(p)) return '연락처 형식이 올바르지 않습니다';
-    await set(ref(db,`${dbPrefix()}members/${n}`),p);
-    memberData[n]=p;
-    return null;
-  }
-
-  window.mdbAddSingle = async function() {
-    const name=document.getElementById('mdbSingleName').value.trim();
-    const phone=document.getElementById('mdbSinglePhone').value.trim();
-    const errEl=document.getElementById('mdbSingleErr');
-    errEl.textContent='';
-    const err=await saveMember(name,phone);
-    if(err){errEl.textContent=err;return;}
-    document.getElementById('mdbSingleName').value='';
-    document.getElementById('mdbSinglePhone').value='';
-    renderMdbList();
-    showToast(`${name} 등록 완료 ✓`,'success');
-  };
-
-  window.mdbAddPaste = async function() {
-    const raw=document.getElementById('mdbPasteArea').value.trim();
-    const errEl=document.getElementById('mdbPasteErr');
-    errEl.textContent='';
-    if(!raw){errEl.textContent='내용을 입력해주세요';return;}
-    const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
-    let ok=0,fail=0,failList=[];
-    for(const line of lines){
-      const parts=line.split(/[\t,]+/).map(p=>p.trim()).filter(Boolean);
-      if(parts.length<2){const m=line.match(/^(.+?)\s+(01[0-9][0-9\-]+)$/);if(m){parts[0]=m[1].trim();parts[1]=m[2].trim();}else{fail++;failList.push(line);continue;}}
-      const err=await saveMember(parts[0],parts[parts.length===2?1:parts.length-1]);
-      if(err){fail++;failList.push(parts[0]);}else ok++;
-    }
-    renderMdbList();
-    if(ok>0){document.getElementById('mdbPasteArea').value='';showToast(`${ok}명 등록${fail>0?`, ${fail}명 실패`:''} ✓`,ok>0?'success':'');}
-    if(fail>0) errEl.textContent=`실패: ${failList.slice(0,3).join(', ')}`;
-  };
-
-  window.mdbHandleFile = async function(input) {
-    const file=input.files[0];if(!file)return;
-    document.getElementById('mdbFileName').textContent=file.name;
-    const errEl=document.getElementById('mdbExcelErr');errEl.textContent='';
-    const ext=file.name.split('.').pop().toLowerCase();
-    if(ext==='csv'){const text=await file.text();await parseCsvAndSave(text,errEl);}
-    else{
-      if(!window.XLSX){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
-      const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});await parseRowsAndSave(rows,errEl);
-    }
-    input.value='';
-  };
-
-  async function parseCsvAndSave(text,errEl){const rows=text.split('\n').map(l=>l.split(',').map(c=>c.replace(/"/g,'').trim()));await parseRowsAndSave(rows,errEl);}
-  async function parseRowsAndSave(rows,errEl){
-    let ok=0,fail=0,failList=[],startRow=0;
-    if(rows.length>0&&rows[0].length>=2&&!/\d{3}/.test(String(rows[0][1])))startRow=1;
-    let nameCol=0,phoneCol=1;
-    const sr=rows[startRow];
-    if(sr&&sr.length>=3&&/^\d+$/.test(String(sr[0]).trim())){nameCol=1;phoneCol=2;}
-    for(let i=startRow;i<rows.length;i++){
-      const cols=rows[i];if(!cols||cols.length<=phoneCol)continue;
-      const name=String(cols[nameCol]||'').trim(),phone=String(cols[phoneCol]||'').trim();
-      if(!name&&!phone)continue;
-      const err=await saveMember(name,phone);
-      if(err){fail++;failList.push(name);}else ok++;
-    }
-    renderMdbList();
-    showToast(`${ok}명 등록${fail>0?`, ${fail}명 실패`:''} ✓`,ok>0?'success':'');
-    if(fail>0&&errEl)errEl.textContent=`형식 오류: ${failList.slice(0,3).join(', ')}`;
-  }
-
-  window.mdbDelete = async function(name) {
-    if(!confirm(`"${name}" 님을 삭제할까요?`))return;
-    await remove(ref(db,`${dbPrefix()}members/${name}`));
-    delete memberData[name];
-    renderMdbList();
-    showToast(`${name} 삭제 완료`);
-  };
-
-  function renderMdbList() {
-    const q=(document.getElementById('mdbSearch')?.value||'').trim().toLowerCase();
-    const entries=Object.entries(memberData).filter(([n,p])=>!q||n.toLowerCase().includes(q)||p.includes(q)).sort((a,b)=>a[0].localeCompare(b[0],'ko'));
-    document.getElementById('mdbCount').textContent=`총 ${Object.keys(memberData).length}명 (표시 ${entries.length}명)`;
-    const tbody=document.getElementById('mdbTableBody');
-    if(!tbody)return;
-    if(entries.length===0){tbody.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:1.5rem;color:var(--text-muted);">등록된 회원이 없어요</td></tr>`;return;}
-    tbody.innerHTML=entries.map(([name,phone])=>`<tr><td style="font-weight:600;">${name}</td><td style="color:var(--text-muted);font-size:12px;">${phone}</td><td><button class="mdb-del-btn" onclick="mdbDelete('${name.replace(/'/g,"\\'")}')">삭제</button></td></tr>`).join('');
-  }
-
-  document.getElementById('memberDbModal').addEventListener('click',function(e){if(e.target===this)closeMemberDb();});
 
   // ── 롱프레스 ──
   function setupLongPress(el, callback) {
