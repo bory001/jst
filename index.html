@@ -1220,7 +1220,7 @@
               <div id="mdpAdminRow" style="display:none;margin-left:auto;gap:4px;flex-shrink:0;">
                 <button class="mdp-admin-btn blue" onclick="openScheduleModal()">📋 일정 추가</button>
                 <button class="mdp-admin-btn green" id="mdpManualToggle" onclick="toggleManualForm()">👤 참석자 추가</button>
-                <button class="mdp-admin-btn" onclick="openPwModal()" style="background:rgba(239,68,68,0.15);color:#b91c1c;border-color:#fca5a5;">🔑 비번변경</button>
+                <button id="mdpPwBtn" class="mdp-admin-btn" onclick="openPwModal()" style="background:rgba(239,68,68,0.15);color:#b91c1c;border-color:#fca5a5;">🔑 비번변경</button>
               </div>
             </div>
             <!-- 일정 정보 표시 -->
@@ -1264,7 +1264,7 @@
         <div id="pcAdminRow" style="display:none;padding:0.5rem 1.25rem 1rem;gap:6px;flex-wrap:wrap;">
           <button class="mdp-admin-btn blue" onclick="openScheduleModal()">📋 일정 추가</button>
           <button class="mdp-admin-btn green" onclick="togglePcManualForm()">👤 참석자 추가</button>
-          <button class="mdp-admin-btn" onclick="openPwModal()" style="background:rgba(239,68,68,0.15);color:#b91c1c;border-color:#fca5a5;">🔑 비번변경</button>
+          <button id="pcPwBtn" class="mdp-admin-btn" onclick="openPwModal()" style="background:rgba(239,68,68,0.15);color:#b91c1c;border-color:#fca5a5;">🔑 비번변경</button>
         </div>
         <div id="pcManualForm" style="display:none;padding:0 1.25rem 1rem;">
           <div style="display:flex;gap:6px;">
@@ -2042,6 +2042,9 @@
     // 관리자 PC 행
     const pcAdminRow = document.getElementById('pcAdminRow');
     if (pcAdminRow) pcAdminRow.style.display = isAdminMode ? 'flex' : 'none';
+    // 비번변경 버튼은 6986(ADMIN_PW)로 로그인한 경우에만 표시
+    const pcPwBtn = document.getElementById('pcPwBtn');
+    if (pcPwBtn) pcPwBtn.style.display = (isAdminMode && _adminEnteredPw === ADMIN_PW) ? '' : 'none';
 
     if (names.length === 0) {
       attList.innerHTML = `<div class="att-empty">아직 등록된 참석자가 없어요</div>`;
@@ -2170,6 +2173,10 @@
     // 관리자 버튼 행
     const adminRow = document.getElementById('mdpAdminRow');
     if (adminRow) adminRow.style.display = isAdminMode ? 'flex' : 'none';
+    // 비번변경 버튼은 6986(ADMIN_PW)로 로그인한 경우에만 표시
+    const _isSuperAdmin = (_adminEnteredPw === ADMIN_PW);
+    const mdpPwBtn = document.getElementById('mdpPwBtn');
+    if (mdpPwBtn) mdpPwBtn.style.display = (isAdminMode && _isSuperAdmin) ? '' : 'none';
 
     // 참석자 + 불참자 수
     const absentNames = Object.keys(_absentData[selectedDate] || {});
